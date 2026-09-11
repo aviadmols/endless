@@ -356,6 +356,20 @@ button { font: inherit; color: inherit; }
 
 /* ------------------------------------------------------------ upload box */
 
+/* The file input stays in the layout (hidden but focusable) so the label's
+   `for` can open the picker natively and keyboard focus still works. */
+.upload__input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+}
+
 .upload {
     border: 1px dashed var(--rule);
     border-radius: var(--r-input);
@@ -365,11 +379,21 @@ button { font: inherit; color: inherit; }
     cursor: pointer;
     transition: border-color var(--t), background var(--t);
     display: block;
+    -webkit-tap-highlight-color: rgb(0 0 0 / 4%);
 }
 .upload:hover, .upload.is-dragging { border-color: var(--ink); background: #fcfbfa; }
-.upload__icon { width: 34px; height: 34px; margin-inline: auto; margin-block-end: 10px; color: var(--ink); }
-.upload__title { font-size: var(--fs-body); }
-.upload__hint { font-size: var(--fs-micro); color: var(--ink-soft); margin-block-start: 6px; }
+.upload:active { background: #f7f5f3; }
+.upload__input:focus-visible + .upload { outline: 2px solid var(--ink); outline-offset: 3px; }
+
+.upload__icon { display: block; width: 34px; height: 34px; margin-inline: auto; margin-block-end: 10px; color: var(--ink); }
+.upload__title { display: block; font-size: var(--fs-body); }
+.upload__hint { display: block; font-size: var(--fs-micro); color: var(--ink-soft); margin-block-start: 6px; }
+.upload__count { display: block; font-size: var(--fs-micro); font-weight: var(--fw-medium); margin-block-start: 8px; }
+.upload__error { color: var(--danger); font-size: var(--fs-micro); line-height: 1.5; margin-block-start: 8px; }
+
+@media (max-width: 767px) {
+    .upload { padding: 34px 16px; }
+}
 
 .previews { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; margin-block-start: 14px; }
 .preview { position: relative; border-radius: 8px; overflow: hidden; aspect-ratio: 1; background: var(--soft); }
@@ -414,6 +438,8 @@ button { font: inherit; color: inherit; }
     padding: 0; margin: -1px; overflow: hidden;
     clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }
+/* Alpine strips this once it boots; without the rule the markup flashes. */
+[x-cloak] { display: none !important; }
 .divider { width: 40px; height: 1px; background: var(--ink); margin-inline: auto; }
 .hr { height: 1px; background: var(--rule-soft); border: 0; margin-block: 30px; }
 .hide-mobile { display: none; }

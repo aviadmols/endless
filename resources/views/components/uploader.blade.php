@@ -3,14 +3,21 @@
     'max' => 10,
     'title' => 'העלאת תמונות או סרטון',
     'hint' => null,
-    'accept' => 'image/*,video/mp4,video/webm,video/quicktime',
     'videos' => true,
 ])
 
 @php
+    // Explicit types rather than image/* on purpose: iOS converts HEIC photos to JPEG
+    // when the accept list does not mention HEIC, which is what the server can read.
+    $accept = $videos
+        ? 'image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime'
+        : 'image/jpeg,image/png,image/webp,image/gif';
+
     $hint ??= $videos
-        ? 'תמונות JPG, PNG, WebP, GIF עד 8MB · סרטונים MP4, WebM, MOV עד 60MB · אפשר לבחור כמה קבצים'
-        : 'JPG, PNG, WebP, GIF · עד 8MB לתמונה · אפשר לבחור כמה תמונות';
+        ? 'תמונות JPG, PNG, WebP, GIF עד 8MB · סרטונים MP4, WebM, MOV עד 60MB'
+        : 'JPG, PNG, WebP, GIF · עד 8MB לתמונה';
+
+    $id = 'upload-' . \Illuminate\Support\Str::slug($name) . '-' . \Illuminate\Support\Str::random(5);
 @endphp
 
 <div
@@ -19,19 +26,33 @@
     @dragleave.prevent="dragging = false"
     @drop.prevent="onDrop($event)"
 >
-    <div class="upload" :class="dragging && 'is-dragging'" @click="pick()" role="button" tabindex="0" @keydown.enter.prevent="pick()" @keydown.space.prevent="pick()">
-        <div class="upload__icon" aria-hidden="true">
-            <img src="{{ asset('images/brand/add-image.svg') }}" alt="">
-        </div>
-        <p class="upload__title">{{ $title }}</p>
-        <p class="upload__hint">{{ $hint }}</p>
-        <input type="file" name="{{ $name }}[]" accept="{{ $accept }}" multiple x-ref="input" class="sr-only" {{ $attributes }}>
-    </div>
+    {{-- The label opens the picker natively; no scripted click, so the phone's
+         photo picker is never re-opened mid-selection. --}}
+    <input
+        type="file"
+        id="{{ $id }}"
+        name="{{ $name }}[]"
+        accept="{{ $accept }}"
+        multiple
+        x-ref="input"
+        class="upload__input"
+        @change="add($event.target.files)"
+        {{ $attributes }}
+    >
 
-    <p x-show="error" x-text="error" x-cloak style="color: var(--danger); font-size: var(--fs-micro); margin-block-start: 8px;"></p>
+    <label class="upload" for="{{ $id }}" :class="dragging && 'is-dragging'">
+        <span class="upload__icon" aria-hidden="true">
+            <img src="{{ asset('images/brand/add-image.svg') }}" alt="">
+        </span>
+        <span class="upload__title">{{ $title }}</span>
+        <span class="upload__hint">{{ $hint }}</span>
+        <span class="upload__count" x-show="files.length" x-cloak x-text="files.length + ' קבצים נבחרו'"></span>
+    </label>
+
+    <p class="upload__error" x-show="error" x-cloak x-text="error"></p>
 
     <div class="previews" x-show="previews.length" x-cloak>
-        <template x-for="(preview, index) in previews" :key="preview.url">
+        <template x-for="(preview, index) in previews" :key="preview.key">
             <div class="preview">
                 <template x-if="preview.isVideo">
                     <video :src="preview.url" muted playsinline preload="metadata"></video>
@@ -48,9 +69,9 @@
     </div>
 
     @error($name)
-        <p style="color: var(--danger); font-size: var(--fs-micro); margin-block-start: 8px;">{{ $message }}</p>
+        <p class="upload__error">{{ $message }}</p>
     @enderror
     @error($name . '.*')
-        <p style="color: var(--danger); font-size: var(--fs-micro); margin-block-start: 8px;">{{ $message }}</p>
+        <p class="upload__error">{{ $message }}</p>
     @enderror
 </div>

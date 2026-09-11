@@ -55,7 +55,7 @@
                     </div>
 
                     <div style="margin-block-end: 20px;">
-                        <x-uploader name="deceased_image" :max="10" title="העלאת תמונות" hint="התמונה הראשונה תשמש כתמונת הפרופיל · JPG, PNG, WebP · עד 8MB" />
+                        <x-uploader name="deceased_image" :max="10" :videos="false" title="העלאת תמונות" hint="התמונה הראשונה תשמש כתמונת הפרופיל · JPG, PNG, WebP, GIF · עד 8MB" />
                     </div>
 
                     <div class="form-row">

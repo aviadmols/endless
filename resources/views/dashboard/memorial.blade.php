@@ -196,7 +196,7 @@
     <div class="accordion__body" hidden>
         <form method="POST" action="{{ route('dashboard.gallery.store') }}" enctype="multipart/form-data" style="margin-block-end: 24px;">
             @csrf
-            <x-uploader name="images" :max="30" title="הוספת תמונות לגלריה" />
+            <x-uploader name="images" :max="30" :videos="false" title="הוספת תמונות לגלריה" />
             <button type="submit" class="btn" style="margin-block-start: 16px;">העלאה לגלריה</button>
         </form>
 

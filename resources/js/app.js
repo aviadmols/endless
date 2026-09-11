@@ -2,6 +2,7 @@ import Alpine from 'alpinejs';
 import './components/header';
 import './components/reveal';
 import './components/masonry';
+import './components/dates';
 import './components/uploader';
 import './components/editor';
 import './components/feed';

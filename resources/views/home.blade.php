@@ -4,9 +4,7 @@
 
 @section('content')
 <div class="landing">
-    @if (setting('landing.image_path'))
-        <div class="landing__bg" style="background-image: url('{{ media_url(setting('landing.image_path')) }}')" aria-hidden="true"></div>
-    @endif
+    <div class="landing__bg" aria-hidden="true"></div>
 
     <div class="landing__inner wrap wrap--form">
         <div class="paper-card fade-in">

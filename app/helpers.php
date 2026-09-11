@@ -29,6 +29,19 @@ if (! function_exists('side_image_url')) {
     }
 }
 
+if (! function_exists('landing_bg_url')) {
+    /** Landing page background: an uploaded image, or the brand photograph. */
+    function landing_bg_url(bool $mobile = false): string
+    {
+        $custom = setting('landing.image_path');
+        if ($custom) {
+            return media_url($custom);
+        }
+
+        return asset($mobile ? 'images/brand/home-bg-mobile.webp' : 'images/brand/home-bg.webp');
+    }
+}
+
 if (! function_exists('brand_logo_url')) {
     /** The Endless wordmark, or a logo uploaded in the admin. */
     function brand_logo_url(): string

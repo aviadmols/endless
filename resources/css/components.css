@@ -84,14 +84,20 @@ body.menu-open { overflow: hidden; }
 
 .landing { background: var(--paper-warm); position: relative; }
 .landing__bg {
-    position: absolute; inset-inline: 0; inset-block-end: 0;
-    height: 55vh;
-    background-size: cover; background-position: center;
-    opacity: 0.35;
-    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 45%);
-    mask-image: linear-gradient(to bottom, transparent, #000 45%);
+    position: fixed;
+    inset-inline: 0;
+    inset-block-end: 0;
+    height: 70vh;
+    background-image: var(--landing-image);
+    background-size: cover;
+    background-position: center bottom;
+    opacity: 0.5;
+    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 55%);
+    mask-image: linear-gradient(to bottom, transparent, #000 55%);
     pointer-events: none;
+    z-index: 0;
 }
+.landing__inner { position: relative; z-index: 1; }
 .landing__inner { position: relative; padding-block: 40px 70px; }
 
 .paper-card {

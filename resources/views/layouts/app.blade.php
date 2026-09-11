@@ -12,7 +12,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@100;200;300;400;500;600;700;900&display=swap" rel="stylesheet">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <style>:root { --scene-image: url('{{ side_image_url() }}'); }</style>
+    <style>
+        :root {
+            --scene-image: url('{{ side_image_url() }}');
+            --landing-image: url('{{ landing_bg_url() }}');
+        }
+        @media (max-width: 767px) { :root { --landing-image: url('{{ landing_bg_url(true) }}'); } }
+    </style>
     @stack('head')
 </head>
 <body class="@yield('body-class')">

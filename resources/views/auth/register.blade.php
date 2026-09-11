@@ -26,7 +26,7 @@
                     </div>
 
                     <div class="form-row form-row--2">
-                        <x-field name="deceased_birth_date" label="תאריך לידה (לא חובה)" type="date" />
+                        <x-field name="deceased_birth_date" label="תאריך לידה" type="date" hint="לא חובה" />
                         <x-field name="deceased_death_date" label="תאריך פטירה" type="date" required />
                     </div>
 

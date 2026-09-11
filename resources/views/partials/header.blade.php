@@ -1,12 +1,7 @@
-@php($logo = setting('general.logo_path'))
 <header class="site-header">
     <div class="site-header__inner">
         <a href="{{ route('home') }}" class="logo" aria-label="{{ setting('general.site_name') }}">
-            @if ($logo)
-                <img src="{{ media_url($logo) }}" alt="{{ setting('general.site_name') }}">
-            @else
-                {{ setting('general.site_name', 'Endless') }}
-            @endif
+            <img src="{{ brand_logo_url() }}" alt="{{ setting('general.site_name', 'Endless') }}">
         </a>
 
         <div class="header-actions">

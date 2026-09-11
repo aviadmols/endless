@@ -4,9 +4,8 @@
 
 @switch($value)
     @case('jewish')
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linejoin="round" {{ $attributes }}>
-            <path d="M12 2.6l3.3 5.7h6.5l-3.2 5.6 3.2 5.6h-6.5L12 25.2 8.7 19.5H2.2l3.2-5.6-3.2-5.6h6.5z" transform="scale(0.86) translate(2 -0.6)"/>
-        </svg>
+        {{-- The Endless star mark. --}}
+        <img src="{{ asset('images/brand/star-of-david.svg') }}" alt="" {{ $attributes }}>
         @break
 
     @case('christian')

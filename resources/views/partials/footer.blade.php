@@ -1,6 +1,7 @@
 <footer class="site-footer">
     <div class="site-footer__inner">
         <p>© {{ date('Y') }} כל הזכויות שמורות ל-{{ setting('general.site_name', 'Endless') }}</p>
+
         <p>
             <a href="{{ route('home') }}">דף הבית</a>
             <span aria-hidden="true"> | </span>

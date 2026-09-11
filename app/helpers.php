@@ -25,7 +25,17 @@ if (! function_exists('side_image_url')) {
     {
         $custom = setting('general.side_image');
 
-        return $custom ? media_url($custom) : asset('images/side-default.webp');
+        return $custom ? media_url($custom) : asset('images/brand/side-dune.webp');
+    }
+}
+
+if (! function_exists('brand_logo_url')) {
+    /** The Endless wordmark, or a logo uploaded in the admin. */
+    function brand_logo_url(): string
+    {
+        $custom = setting('general.logo_path');
+
+        return $custom ? media_url($custom) : asset('images/brand/logo.svg');
     }
 }
 

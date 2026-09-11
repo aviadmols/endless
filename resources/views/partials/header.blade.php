@@ -1,0 +1,59 @@
+@php($logo = setting('general.logo_path'))
+<header class="site-header">
+    <div class="site-header__inner">
+        <a href="{{ route('home') }}" class="logo" aria-label="{{ setting('general.site_name') }}">
+            @if ($logo)
+                <img src="{{ media_url($logo) }}" alt="{{ setting('general.site_name') }}">
+            @else
+                {{ setting('general.site_name', 'Endless') }}
+            @endif
+        </a>
+
+        <nav class="site-nav" aria-label="ניווט ראשי">
+            @auth
+                <a href="{{ route('dashboard.index') }}">האזור האישי</a>
+                @if (auth()->user()->is_admin)
+                    <a href="{{ route('admin.index') }}">ניהול</a>
+                @endif
+            @else
+                <a href="{{ route('login') }}">כניסה</a>
+            @endauth
+        </nav>
+
+        <div class="header-actions">
+            @auth
+                <form method="POST" action="{{ route('logout') }}" class="hide-mobile">
+                    @csrf
+                    <button type="submit" class="btn btn--ghost btn--sm">יציאה</button>
+                </form>
+            @else
+                <a href="{{ route('register') }}" class="btn btn--ghost btn--sm">יצירת עמוד</a>
+            @endauth
+
+            <button type="button" class="burger" data-burger aria-expanded="false" aria-controls="mobile-menu" aria-label="תפריט">
+                <span></span>
+            </button>
+        </div>
+    </div>
+</header>
+
+<nav class="mobile-menu" id="mobile-menu" data-mobile-menu hidden aria-label="תפריט נייד">
+    @auth
+        <a href="{{ route('dashboard.index') }}">האזור האישי</a>
+        <a href="{{ route('dashboard.memorial.edit') }}">עריכת העמוד</a>
+        <a href="{{ route('dashboard.memories.index') }}">זיכרונות</a>
+        <a href="{{ route('dashboard.share') }}">שיתוף</a>
+        <a href="{{ route('dashboard.account.edit') }}">החשבון שלי</a>
+        @if (auth()->user()->is_admin)
+            <a href="{{ route('admin.index') }}">ניהול המערכת</a>
+        @endif
+        <form method="POST" action="{{ route('logout') }}">
+            @csrf
+            <button type="submit" class="btn btn--ghost btn--block">יציאה</button>
+        </form>
+    @else
+        <a href="{{ route('home') }}">דף הבית</a>
+        <a href="{{ route('login') }}">כניסה לאזור האישי</a>
+        <a href="{{ route('register') }}" class="btn btn--block">יצירת עמוד הנצחה</a>
+    @endauth
+</nav>

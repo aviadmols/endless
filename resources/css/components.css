@@ -436,6 +436,8 @@ body.menu-open { overflow: hidden; }
 .card + .card { margin-block-start: 20px; }
 
 .grid { display: grid; gap: 20px; }
+/* Without this a wide child (a QR canvas, a long link) stretches its column. */
+.grid > * { min-width: 0; }
 .grid--2 { grid-template-columns: 1fr; }
 .grid--3 { grid-template-columns: 1fr; }
 .grid--4 { grid-template-columns: repeat(2, 1fr); }
@@ -503,7 +505,8 @@ body.menu-open { overflow: hidden; }
 .copy-field .btn { flex: 0 0 auto; }
 
 .qr-box { display: grid; place-items: center; padding: 20px; background: var(--paper); border: 1px solid var(--rule-soft); border-radius: var(--r-img); }
-.qr-box canvas, .qr-box img { width: 190px; height: 190px; }
+/* The QR library writes its own inline width, so this has to win. */
+.qr-box canvas, .qr-box img { width: 100% !important; height: auto !important; max-width: 220px; }
 
 /* tables (admin) */
 .table-wrap { overflow-x: auto; }
@@ -512,6 +515,56 @@ table.data th, table.data td { padding: 12px 14px; text-align: start; border-blo
 table.data th { font-weight: var(--fw-medium); color: var(--ink-soft); font-size: var(--fs-micro); }
 table.data tbody tr:hover { background: var(--soft); }
 table.data td.wrap-cell { white-space: normal; min-width: 220px; }
+
+/* --------------------------------------------------- personal area on phones
+   The panel is the whole screen there, so it gives back the padding it can
+   spare and the row actions become an even grid instead of a ragged wrap.
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 767px) {
+    .scene__inner { padding-block: 14px 40px; }
+    .wrap--panel { padding-inline: 12px; }
+
+    .panel-head { padding: 26px 18px 16px; gap: 14px; }
+    .panel-head h1 { font-size: 26px; }
+    .panel-head > div:first-child { flex: 1 1 100%; }
+    .panel-head .btn { width: 100%; }
+
+    .panel-tabs { padding: 0 18px 14px; gap: 5px; }
+    .panel-tabs a { padding: 8px 14px; font-size: 14px; }
+    .panel-body { padding: 18px; }
+
+    .card__head { padding: 16px 18px; }
+    .card__body { padding: 18px; }
+    .card + .card { margin-block-start: 16px; }
+    .card__head h2 { font-size: 16px; }
+
+    .tabs { gap: 5px; margin-block-end: 18px; }
+    .tabs a { padding: 8px 14px; font-size: 14px; }
+
+    .grid { gap: 14px; }
+    .stat { padding: 16px; }
+    .stat__value { font-size: 28px; }
+
+    .memory-row { gap: 12px; padding: 16px 0; }
+    .memory-row__thumb { flex: 0 0 64px; width: 64px; height: 64px; }
+    .memory-row__actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .memory-row__actions > * { width: 100%; }
+    .memory-row__actions .btn { width: 100%; padding-inline: 8px; }
+
+    .copy-field { flex-direction: column; }
+    .copy-field .btn { width: 100%; }
+
+    .previews { grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 8px; }
+
+    .accordion__head { padding: 16px 18px; }
+    .accordion__head h2 { font-size: 16px; }
+    .accordion__body { padding: 18px; }
+
+    .app-head h1 { font-size: 26px; }
+    .admin-nav { gap: 6px; }
+    .empty { padding: 34px 16px; }
+}
 
 /* impersonation ribbon */
 .impersonate-bar {

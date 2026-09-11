@@ -1,12 +1,20 @@
 @props([
-    'name' => 'images',
+    'name' => 'media',
     'max' => 10,
-    'title' => 'העלאת תמונות',
-    'hint' => 'JPG, PNG, WebP, GIF · עד 8MB לתמונה · אפשר לבחור כמה תמונות',
+    'title' => 'העלאת תמונות או סרטון',
+    'hint' => null,
+    'accept' => 'image/*,video/mp4,video/webm,video/quicktime',
+    'videos' => true,
 ])
 
+@php
+    $hint ??= $videos
+        ? 'תמונות JPG, PNG, WebP, GIF עד 8MB · סרטונים MP4, WebM, MOV עד 60MB · אפשר לבחור כמה קבצים'
+        : 'JPG, PNG, WebP, GIF · עד 8MB לתמונה · אפשר לבחור כמה תמונות';
+@endphp
+
 <div
-    x-data="uploader({ max: {{ (int) $max }} })"
+    x-data="uploader({ max: {{ (int) $max }}, videos: {{ $videos ? 'true' : 'false' }} })"
     @dragover.prevent="dragging = true"
     @dragleave.prevent="dragging = false"
     @drop.prevent="onDrop($event)"
@@ -17,29 +25,37 @@
                 <rect x="3" y="4" width="14" height="14" rx="2"></rect>
                 <circle cx="8" cy="9" r="1.6"></circle>
                 <path d="M3 15l4-4 5 5"></path>
-                <path d="M19 8v8M23 12h-8" transform="translate(-2 0)"></path>
+                <path d="M17 10l4-2.5v9L17 14z"></path>
             </svg>
         </div>
         <p class="upload__title">{{ $title }}</p>
         <p class="upload__hint">{{ $hint }}</p>
-        <input type="file" name="{{ $name }}[]" accept="image/*" multiple x-ref="input" class="sr-only" {{ $attributes }}>
+        <input type="file" name="{{ $name }}[]" accept="{{ $accept }}" multiple x-ref="input" class="sr-only" {{ $attributes }}>
     </div>
 
-    <p class="error" x-show="error" x-text="error" x-cloak style="color: var(--danger); font-size: var(--fs-micro); margin-block-start: 8px;"></p>
+    <p x-show="error" x-text="error" x-cloak style="color: var(--danger); font-size: var(--fs-micro); margin-block-start: 8px;"></p>
 
     <div class="previews" x-show="previews.length" x-cloak>
         <template x-for="(preview, index) in previews" :key="preview.url">
             <div class="preview">
-                <img :src="preview.url" :alt="preview.name">
+                <template x-if="preview.isVideo">
+                    <video :src="preview.url" muted playsinline preload="metadata"></video>
+                </template>
+                <template x-if="!preview.isVideo">
+                    <img :src="preview.url" :alt="preview.name">
+                </template>
+                <span class="media-play media-play--sm" x-show="preview.isVideo" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg>
+                </span>
                 <button type="button" @click="remove(index)" :aria-label="'הסרת ' + preview.name">&times;</button>
             </div>
         </template>
     </div>
 
     @error($name)
-        <p class="error" style="color: var(--danger); font-size: var(--fs-micro); margin-block-start: 8px;">{{ $message }}</p>
+        <p style="color: var(--danger); font-size: var(--fs-micro); margin-block-start: 8px;">{{ $message }}</p>
     @enderror
     @error($name . '.*')
-        <p class="error" style="color: var(--danger); font-size: var(--fs-micro); margin-block-start: 8px;">{{ $message }}</p>
+        <p style="color: var(--danger); font-size: var(--fs-micro); margin-block-start: 8px;">{{ $message }}</p>
     @enderror
 </div>

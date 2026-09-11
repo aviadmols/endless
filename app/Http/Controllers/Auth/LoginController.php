@@ -81,7 +81,7 @@ class LoginController extends Controller
             'alternateChannel' => $channel === OtpChannel::Sms ? ($user->email ? OtpChannel::Email : null) : ($user->phone ? OtpChannel::Sms : null),
             'verifyRoute' => route('login.verify.store'),
             'resendRoute' => route('login.resend'),
-            'devCode' => app()->environment('local') ? config('endless.otp.dev_code') : null,
+            'previewCode' => $request->session()->get('login.preview'),
         ]);
     }
 
@@ -107,7 +107,7 @@ class LoginController extends Controller
 
         Auth::login($user, remember: true);
         $request->session()->regenerate();
-        $request->session()->forget(['login.user_id', 'login.identifier', 'login.channel']);
+        $request->session()->forget(['login.user_id', 'login.identifier', 'login.channel', 'login.preview']);
 
         return redirect()->intended($user->is_admin && ! $user->primaryMemorial() ? route('admin.index') : route('dashboard.index'));
     }
@@ -181,6 +181,7 @@ class LoginController extends Controller
             'login.user_id' => $user->id,
             'login.identifier' => $identifier,
             'login.channel' => $channel->value,
+            'login.preview' => $this->otp->isSimulated($channel) ? $this->otp->lastPlainCode : null,
         ]);
     }
 

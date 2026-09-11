@@ -140,7 +140,7 @@ class RegisterController extends Controller
 
         Auth::login($user, remember: true);
         $request->session()->regenerate();
-        $request->session()->forget(['register.user_id', 'register.identifier', 'register.channel']);
+        $request->session()->forget(['register.user_id', 'register.identifier', 'register.channel', 'register.preview']);
 
         $memorial = $user->primaryMemorial();
         if ($memorial && $user->email && ($this->settings->mailConfigured() || app()->environment(['local', 'testing']))) {
@@ -203,6 +203,7 @@ class RegisterController extends Controller
             'register.user_id' => $user->id,
             'register.identifier' => $identifier,
             'register.channel' => $channel->value,
+            'register.preview' => $this->otp->isSimulated($channel) ? $this->otp->lastPlainCode : null,
         ]);
     }
 
@@ -226,7 +227,7 @@ class RegisterController extends Controller
             'alternateChannel' => $channel === OtpChannel::Sms ? ($user->email ? OtpChannel::Email : null) : ($user->phone ? OtpChannel::Sms : null),
             'verifyRoute' => route("{$purpose}.verify.store"),
             'resendRoute' => route("{$purpose}.resend"),
-            'devCode' => app()->environment('local') ? config('endless.otp.dev_code') : null,
+            'previewCode' => $request->session()->get("{$purpose}.preview"),
         ];
     }
 

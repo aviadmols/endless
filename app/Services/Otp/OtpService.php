@@ -46,6 +46,18 @@ class OtpService
         return $phone ? OtpChannel::Sms : OtpChannel::Email;
     }
 
+    /**
+     * True when the code was not really delivered anywhere — SMTP / SMS are still unconfigured
+     * and the message only reached the log. The verification screen shows the code itself in
+     * that case, so the site is usable before the accounts are set up.
+     */
+    public function isSimulated(OtpChannel $channel): bool
+    {
+        return $channel === OtpChannel::Sms
+            ? ! $this->sms->isConfigured()
+            : ! $this->settings->mailConfigured();
+    }
+
     public function channelsAvailable(?string $email, ?string $phone): array
     {
         $out = [];

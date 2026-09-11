@@ -20,14 +20,22 @@
             <x-editor name="body" :value="$memory?->body" label="הזיכרון" placeholder="מה תרצו לספר?" />
 
             <div style="margin-block-start: 24px;">
-                <h3 class="eyebrow" style="font-size: 13px; letter-spacing: 2px; margin-block-end: 14px;">תמונות</h3>
+                <h3 class="eyebrow" style="font-size: 13px; letter-spacing: 2px; margin-block-end: 14px;">תמונות וסרטונים</h3>
 
-                @if ($memory && $memory->images->isNotEmpty())
+                @if ($memory && $memory->media->isNotEmpty())
                     <div class="previews" style="margin-block-end: 16px;">
-                        @foreach ($memory->images as $image)
+                        @foreach ($memory->media as $media)
                             <div class="preview">
-                                <img src="{{ $image->thumb_url }}" alt="">
-                                <form method="POST" action="{{ route('dashboard.memories.images.destroy', [$memory, $image]) }}" onsubmit="return confirm('להסיר את התמונה?')">
+                                @if ($media->is_video)
+                                    <video src="{{ $media->url }}" muted playsinline preload="metadata"></video>
+                                    <span class="media-play media-play--sm" aria-hidden="true">
+                                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg>
+                                    </span>
+                                @else
+                                    <img src="{{ $media->thumb_url }}" alt="">
+                                @endif
+                                <form method="POST" action="{{ route('dashboard.memories.images.destroy', [$memory, $media]) }}"
+                                      onsubmit="return confirm('{{ $media->is_video ? 'להסיר את הסרטון?' : 'להסיר את התמונה?' }}')">
                                     @csrf @method('DELETE')
                                     <button type="submit" aria-label="הסרה">&times;</button>
                                 </form>
@@ -36,7 +44,7 @@
                     </div>
                 @endif
 
-                <x-uploader name="images" :max="config('endless.uploads.memory_max_images')" title="הוספת תמונות" />
+                <x-uploader name="media" :max="config('endless.uploads.memory_max_images')" title="הוספת תמונות או סרטון" />
             </div>
 
             <div style="display: flex; gap: 12px; margin-block-start: 26px;">

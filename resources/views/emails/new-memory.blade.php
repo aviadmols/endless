@@ -7,8 +7,8 @@
 
     <div style="background:#F9F8F5; border-radius:12px; padding:18px 20px; margin-bottom:22px;">
         <p style="margin:0; font-size:15px; font-weight:300; line-height:1.6;">{{ $memory->excerpt(40) }}</p>
-        @if ($memory->images->isNotEmpty())
-            <p style="margin:12px 0 0; font-size:13px; color:#575757;">מצורפות {{ $memory->images->count() }} תמונות.</p>
+        @if ($memory->media->isNotEmpty())
+            <p style="margin:12px 0 0; font-size:13px; color:#575757;">מצורפים {{ $memory->media->count() }} קבצים (תמונות / סרטונים).</p>
         @endif
     </div>
 

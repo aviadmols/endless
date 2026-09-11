@@ -16,7 +16,7 @@ class MemorialController extends Controller
         $memorial->load(['images', 'owner']);
         $perPage = (int) config('endless.feed.per_page', 8);
 
-        $memories = $memorial->approvedMemories()->with('images')->paginate($perPage);
+        $memories = $memorial->approvedMemories()->with('media')->paginate($perPage);
 
         return view('memorials.show', [
             'memorial' => $memorial,
@@ -30,7 +30,7 @@ class MemorialController extends Controller
     public function feed(Request $request, Memorial $memorial): JsonResponse
     {
         $perPage = (int) config('endless.feed.per_page', 8);
-        $memories = $memorial->approvedMemories()->with('images')->paginate($perPage);
+        $memories = $memorial->approvedMemories()->with('media')->paginate($perPage);
 
         $html = '';
         foreach ($memories as $memory) {

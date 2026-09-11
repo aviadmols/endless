@@ -9,14 +9,14 @@ use App\Models\ActivityLog;
 use App\Models\Memory;
 use App\Models\MemoryImage;
 use App\Services\Html\HtmlSanitizer;
-use App\Services\Media\ImageProcessor;
+use App\Services\Media\MemoryMediaStore;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class MemoryController extends Controller
 {
-    public function __construct(protected HtmlSanitizer $sanitizer, protected ImageProcessor $images) {}
+    public function __construct(protected HtmlSanitizer $sanitizer, protected MemoryMediaStore $mediaStore) {}
 
     public function index(Request $request): View|RedirectResponse
     {
@@ -33,7 +33,7 @@ class MemoryController extends Controller
             'rejected' => $memorial->memories()->where('status', MemoryStatus::Rejected->value)->count(),
         ];
 
-        $memories = $memorial->memories()->with('images')
+        $memories = $memorial->memories()->with('media')
             ->status($status === 'all' ? null : $status)
             ->paginate(12)->withQueryString();
 
@@ -67,7 +67,7 @@ class MemoryController extends Controller
             'submitted_via' => 'owner',
             'ip' => $request->ip(),
         ]);
-        $this->attachImages($request, $memory);
+        $this->mediaStore->attachFromRequest($request, $memory);
         ActivityLog::record('memory.created_by_owner', $memorial, null, ['memory_id' => $memory->id]);
 
         return redirect()->route('dashboard.memories.index', ['status' => 'approved'])->with('status', 'הזיכרון נוסף לעמוד.');
@@ -76,7 +76,7 @@ class MemoryController extends Controller
     public function edit(Request $request, Memory $memory): View
     {
         $this->authorize('update', $memory);
-        $memory->load('images');
+        $memory->load('media');
 
         return view('dashboard.memories.form', ['memorial' => $memory->memorial, 'memory' => $memory]);
     }
@@ -92,7 +92,7 @@ class MemoryController extends Controller
             'body' => $body,
             'body_plain' => $this->sanitizer->toPlainText($body),
         ]);
-        $this->attachImages($request, $memory);
+        $this->mediaStore->attachFromRequest($request, $memory);
         ActivityLog::record('memory.updated', $memory->memorial, null, ['memory_id' => $memory->id]);
 
         return redirect()->route('dashboard.memories.index', ['status' => $memory->status->value])->with('status', 'הזיכרון עודכן.');
@@ -119,8 +119,8 @@ class MemoryController extends Controller
     public function destroy(Memory $memory): RedirectResponse
     {
         $this->authorize('delete', $memory);
-        foreach ($memory->images as $image) {
-            $image->delete();
+        foreach ($memory->media as $media) {
+            $media->delete();
         }
         $memory->delete();
 
@@ -133,16 +133,6 @@ class MemoryController extends Controller
         abort_unless($image->memory_id === $memory->id, 404);
         $image->delete();
 
-        return back()->with('status', 'התמונה הוסרה.');
-    }
-
-    protected function attachImages(Request $request, Memory $memory): void
-    {
-        $order = (int) ($memory->images()->max('sort_order') ?? -1);
-        foreach ((array) $request->file('images', []) as $file) {
-            if ($file) {
-                $memory->images()->create($this->images->store($file, "memorials/{$memory->memorial_id}/memories") + ['sort_order' => ++$order]);
-            }
-        }
+        return back()->with('status', $image->is_video ? 'הסרטון הוסר.' : 'התמונה הוסרה.');
     }
 }

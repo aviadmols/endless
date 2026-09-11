@@ -9,8 +9,9 @@ use App\Models\ActivityLog;
 use App\Models\Memorial;
 use App\Models\Memory;
 use App\Services\Html\HtmlSanitizer;
-use App\Services\Media\ImageProcessor;
+use App\Services\Media\MemoryMediaStore;
 use App\Services\Settings\SettingsRepository;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -22,7 +23,7 @@ class MemoryController extends Controller
 {
     public function __construct(
         protected HtmlSanitizer $sanitizer,
-        protected ImageProcessor $images,
+        protected MemoryMediaStore $mediaStore,
         protected SettingsRepository $settings,
     ) {}
 
@@ -31,14 +32,52 @@ class MemoryController extends Controller
         $canSeeAll = $memorial->isOwnedBy($request->user()) || (bool) $request->user()?->is_admin;
         abort_unless($memory->is_approved || $canSeeAll, 404);
 
-        $memory->load('images');
-        $others = $memorial->approvedMemories()->with('images')->where('id', '!=', $memory->id)->limit(12)->get();
+        $memory->load('media');
 
         return view('memories.show', [
             'memorial' => $memorial,
             'memory' => $memory,
-            'others' => $others,
-        ]);
+            'others' => $memorial->approvedMemories()->with('media')->where('id', '!=', $memory->id)->limit(12)->get(),
+        ] + $this->neighbours($memorial, $memory));
+    }
+
+    /**
+     * Previous / next in the same order the feed uses (newest first), so visitors can
+     * page through the memories instead of going back to the profile every time.
+     *
+     * @return array{previous: ?Memory, next: ?Memory, position: ?int, total: int}
+     */
+    protected function neighbours(Memorial $memorial, Memory $memory): array
+    {
+        $approved = fn (): Builder => Memory::query()
+            ->where('memorial_id', $memorial->id)
+            ->where('status', MemoryStatus::Approved->value);
+
+        $total = $approved()->count();
+
+        if (! $memory->is_approved) {
+            return ['previous' => null, 'next' => null, 'position' => null, 'total' => $total];
+        }
+
+        // Newer than the current memory.
+        $newer = fn (Builder $q) => $q->where(function (Builder $w) use ($memory) {
+            $w->where('created_at', '>', $memory->created_at)
+                ->orWhere(fn (Builder $tie) => $tie->where('created_at', $memory->created_at)->where('id', '>', $memory->id));
+        });
+
+        // Older than the current memory.
+        $older = fn (Builder $q) => $q->where(function (Builder $w) use ($memory) {
+            $w->where('created_at', '<', $memory->created_at)
+                ->orWhere(fn (Builder $tie) => $tie->where('created_at', $memory->created_at)->where('id', '<', $memory->id));
+        });
+
+        return [
+            // "Previous" walks back up towards the newest memory.
+            'previous' => $newer($approved())->with('media')->orderBy('created_at')->orderBy('id')->first(),
+            'next' => $older($approved())->with('media')->orderByDesc('created_at')->orderByDesc('id')->first(),
+            'position' => $newer($approved())->count() + 1,
+            'total' => $total,
+        ];
     }
 
     /** Public "add a memory" form, reached through the owner's share link. */
@@ -77,11 +116,7 @@ class MemoryController extends Controller
                 'user_agent' => mb_substr((string) $request->userAgent(), 0, 255),
             ]);
 
-            foreach ((array) $request->file('images', []) as $i => $file) {
-                if ($file) {
-                    $memory->images()->create($this->images->store($file, "memorials/{$memorial->id}/memories") + ['sort_order' => $i]);
-                }
-            }
+            $this->mediaStore->attachFromRequest($request, $memory);
 
             return $memory;
         });

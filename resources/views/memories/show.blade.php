@@ -7,12 +7,25 @@
 @endpush
 
 @section('content')
-<div class="memory-page">
+<div class="memory-page"
+     @if ($previous || $next)
+        x-data
+        @keydown.window.arrow-left="$refs.next?.click()"
+        @keydown.window.arrow-right="$refs.previous?.click()"
+     @endif>
+
     <div class="wrap wrap--read" style="padding-block-start: 0;">
         <article class="memory-paper fade-in">
-            @if ($memory->cover)
+
+            @php($cover = $memory->media->first())
+            @if ($cover)
                 <div class="memory-paper__cover">
-                    <img src="{{ $memory->cover->url }}" alt="" width="{{ $memory->cover->width }}" height="{{ $memory->cover->height }}">
+                    @if ($cover->is_video)
+                        <video src="{{ $cover->url }}" controls playsinline preload="metadata"
+                               @if ($cover->poster_url) poster="{{ $cover->poster_url }}" @endif></video>
+                    @else
+                        <img src="{{ $cover->url }}" alt="" width="{{ $cover->width }}" height="{{ $cover->height }}">
+                    @endif
                 </div>
             @endif
 
@@ -34,20 +47,65 @@
                 {!! $memory->body !!}
             </div>
 
-            @if ($memory->images->count() > 1)
+            @if ($memory->media->count() > 1)
                 <div class="memory-paper__images">
-                    @foreach ($memory->images->slice(1) as $image)
-                        <img src="{{ $image->url }}" alt="" loading="lazy" width="{{ $image->width }}" height="{{ $image->height }}">
+                    @foreach ($memory->media->slice(1) as $media)
+                        @if ($media->is_video)
+                            <video src="{{ $media->url }}" controls playsinline preload="metadata"
+                                   @if ($media->poster_url) poster="{{ $media->poster_url }}" @endif></video>
+                        @else
+                            <img src="{{ $media->url }}" alt="" loading="lazy" width="{{ $media->width }}" height="{{ $media->height }}">
+                        @endif
                     @endforeach
                 </div>
             @endif
 
-            <p class="micro center" style="padding: 20px 26px 0;">{{ $memory->date_display }}</p>
-
-            <div class="memory-paper__actions">
-                <a href="{{ route('memorials.show', $memorial) }}" class="btn btn--ghost" style="min-width: min(600px, 100%);">חזרה לפרופיל</a>
-            </div>
+            <p class="micro center" style="padding: 22px 26px 30px;">
+                {{ $memory->date_display }}
+                @if ($position)
+                    <span aria-hidden="true"> · </span>זיכרון {{ $position }} מתוך {{ $total }}
+                @endif
+            </p>
         </article>
+
+        {{-- ---------------------------------------------------- prev / next --}}
+        @if ($previous || $next)
+            <nav class="memory-nav fade-in" aria-label="מעבר בין זיכרונות">
+                @if ($previous)
+                    <a href="{{ route('memories.show', [$memorial, $previous]) }}" class="memory-nav__link" x-ref="previous" rel="prev">
+                        <span class="memory-nav__arrow" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                        </span>
+                        @if ($previous->cover && ! $previous->cover->is_video)
+                            <img class="memory-nav__thumb" src="{{ $previous->cover->thumb_url }}" alt="" loading="lazy">
+                        @endif
+                        <span class="memory-nav__text">
+                            <span class="memory-nav__label">הזיכרון הקודם</span>
+                            <span class="memory-nav__name">{{ $previous->author_name }}</span>
+                        </span>
+                    </a>
+                @else
+                    <span class="memory-nav__link is-empty" aria-hidden="true"></span>
+                @endif
+
+                @if ($next)
+                    <a href="{{ route('memories.show', [$memorial, $next]) }}" class="memory-nav__link memory-nav__link--next" x-ref="next" rel="next">
+                        <span class="memory-nav__text">
+                            <span class="memory-nav__label">הזיכרון הבא</span>
+                            <span class="memory-nav__name">{{ $next->author_name }}</span>
+                        </span>
+                        @if ($next->cover && ! $next->cover->is_video)
+                            <img class="memory-nav__thumb" src="{{ $next->cover->thumb_url }}" alt="" loading="lazy">
+                        @endif
+                        <span class="memory-nav__arrow" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                        </span>
+                    </a>
+                @else
+                    <span class="memory-nav__link is-empty" aria-hidden="true"></span>
+                @endif
+            </nav>
+        @endif
     </div>
 </div>
 

@@ -3,7 +3,18 @@
 @if ($cover)
     <a href="{{ route('memories.show', [$memorial, $memory]) }}" class="memory-card fade-in">
         <div class="memory-card__media">
-            <img src="{{ $cover->thumb_url }}" alt="" loading="lazy" width="{{ $cover->width }}" height="{{ $cover->height }}">
+            @if ($cover->is_video)
+                <div class="memory-card__video">
+                    <video src="{{ $cover->url }}" preload="metadata" muted playsinline
+                           @if ($cover->poster_url) poster="{{ $cover->poster_url }}" @endif></video>
+                    <span class="media-play" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg>
+                    </span>
+                </div>
+            @else
+                <img src="{{ $cover->thumb_url }}" alt="" loading="lazy" width="{{ $cover->width }}" height="{{ $cover->height }}">
+            @endif
+
             <div class="memory-card__overlay">
                 <p class="memory-card__text">&rdquo;{{ $memory->excerpt(18) }}&ldquo;</p>
                 <p class="memory-card__name">{{ $memory->author_name }}</p>

@@ -16,9 +16,15 @@
 
             <x-alerts />
 
-            @if ($devCode)
+            @if ($previewCode)
                 <div class="alert alert--info" style="margin-block-end: 20px;">
-                    סביבת פיתוח: הקוד הקבוע הוא <strong dir="ltr">{{ $devCode }}</strong>
+                    <p style="margin-block-end: 10px;">שליחת ההודעות עדיין לא הוגדרה, לכן הקוד מוצג כאן:</p>
+                    <p style="font-size: 30px; letter-spacing: 10px; direction: ltr; text-align: center; margin-block-end: 10px;"><strong>{{ $previewCode }}</strong></p>
+                    <p class="micro" style="margin: 0;">
+                        לאחר הגדרת SMTP וחשבון 019SMS
+                        @auth @if (auth()->user()->is_admin) (<a href="{{ route('admin.settings.edit', 'mail') }}" class="link-underline">כאן</a>) @endif @endauth
+                        הקוד יישלח למשתמש ויפסיק להופיע במסך.
+                    </p>
                 </div>
             @endif
 

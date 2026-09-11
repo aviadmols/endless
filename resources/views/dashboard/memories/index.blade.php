@@ -34,8 +34,8 @@
                     <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px;">
                         <p class="memory-row__name">{{ $memory->author_name }}</p>
                         <span class="badge badge--{{ $memory->status->value }}">{{ $memory->status->label() }}</span>
-                        @if ($memory->images->count() > 1)
-                            <span class="micro">{{ $memory->images->count() }} תמונות</span>
+                        @if ($memory->media->count() > 1)
+                            <span class="micro">{{ $memory->media->count() }} קבצים</span>
                         @endif
                     </div>
                     <p class="memory-row__date">{{ $memory->date_display }}@if ($memory->author_email) · {{ $memory->author_email }}@endif</p>

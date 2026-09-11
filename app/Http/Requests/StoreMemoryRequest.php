@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\MemoryMedia;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreMemoryRequest extends FormRequest
@@ -13,9 +14,6 @@ class StoreMemoryRequest extends FormRequest
 
     public function rules(): array
     {
-        $maxKb = (int) config('endless.uploads.image_max_kb', 8192);
-        $mimes = implode(',', config('endless.uploads.image_mimes', ['jpg', 'jpeg', 'png', 'webp']));
-
         return [
             'author_name' => ['required', 'string', 'max:120'],
             'author_email' => ['nullable', 'email:rfc', 'max:160'],
@@ -26,8 +24,8 @@ class StoreMemoryRequest extends FormRequest
                     $fail('כתבו כמה מילים על הזיכרון.');
                 }
             }],
-            'images' => ['nullable', 'array', 'max:'.config('endless.uploads.memory_max_images', 10)],
-            'images.*' => ['image', 'mimes:'.$mimes, 'max:'.$maxKb],
+            'media' => ['nullable', 'array', 'max:'.config('endless.uploads.memory_max_images', 10)],
+            'media.*' => ['file', new MemoryMedia],
             'website' => ['nullable', 'max:0'], // honeypot
         ];
     }
@@ -40,8 +38,8 @@ class StoreMemoryRequest extends FormRequest
             'author_phone' => 'טלפון',
             'title' => 'כותרת',
             'body' => 'הזיכרון',
-            'images' => 'תמונות',
-            'images.*' => 'תמונה',
+            'media' => 'תמונות וסרטונים',
+            'media.*' => 'קובץ',
         ];
     }
 
@@ -49,9 +47,7 @@ class StoreMemoryRequest extends FormRequest
     {
         return [
             'body.required' => 'כתבו כמה מילים על הזיכרון.',
-            'images.max' => 'ניתן להעלות עד :max תמונות.',
-            'images.*.max' => 'כל תמונה יכולה להיות עד 8MB.',
-            'images.*.image' => 'ניתן להעלות קבצי תמונה בלבד (JPG, PNG, WebP, GIF).',
+            'media.max' => 'ניתן להעלות עד :max קבצים.',
         ];
     }
 }

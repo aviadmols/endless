@@ -21,7 +21,7 @@
                     <p class="eyebrow" style="font-size: 13px; letter-spacing: 2px; margin-block-end: 10px;">{{ $memorial->display_subtitle }}</p>
                     <h1 class="page-title" style="font-size: 34px;">{{ $memorial->full_name }}</h1>
                     <div class="divider" style="margin-block: 16px;"></div>
-                    <p class="muted" style="font-size: var(--fs-body);">שתפו זיכרון, סיפור או תמונה. כל מילה נשמרת בעמוד ההנצחה.</p>
+                    <p class="muted" style="font-size: var(--fs-body);">שתפו זיכרון, סיפור, תמונות או סרטון. כל מילה נשמרת בעמוד ההנצחה.</p>
                 </div>
 
                 @if ($submitted)
@@ -43,8 +43,8 @@
                         @csrf
                         <input type="text" name="website" value="" tabindex="-1" autocomplete="off" class="sr-only" aria-hidden="true">
 
-                        <h2 class="eyebrow" style="font-size: 14px; letter-spacing: 2px; margin-block-end: 16px;">התמונות שלכם</h2>
-                        <x-uploader name="images" :max="config('endless.uploads.memory_max_images')" title="העלאת תמונות" />
+                        <h2 class="eyebrow" style="font-size: 14px; letter-spacing: 2px; margin-block-end: 16px;">תמונות וסרטונים</h2>
+                        <x-uploader name="media" :max="config('endless.uploads.memory_max_images')" />
 
                         <div style="margin-block-start: 30px;">
                             <h2 class="eyebrow" style="font-size: 14px; letter-spacing: 2px; margin-block-end: 16px;">הזיכרון</h2>

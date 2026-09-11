@@ -1,12 +1,14 @@
 import Alpine from 'alpinejs';
 
 /**
- * Multi-image picker with previews, drag & drop, per-file removal and re-ordering.
+ * Multi-file picker for photos and videos with previews, drag & drop and removal.
  * Keeps a real FileList in sync with the <input type="file"> through DataTransfer.
  */
 Alpine.data('uploader', (options = {}) => ({
     max: options.max ?? 10,
-    maxSizeMb: options.maxSizeMb ?? 8,
+    videos: options.videos ?? false,
+    maxImageMb: options.maxImageMb ?? 8,
+    maxVideoMb: options.maxVideoMb ?? 60,
     files: [],
     previews: [],
     error: '',
@@ -22,22 +24,34 @@ Alpine.data('uploader', (options = {}) => ({
 
     onDrop(event) {
         this.dragging = false;
-        this.add(Array.from(event.dataTransfer?.files || []).filter((f) => f.type.startsWith('image/')));
+        const dropped = Array.from(event.dataTransfer?.files || []).filter(
+            (f) => f.type.startsWith('image/') || (this.videos && f.type.startsWith('video/'))
+        );
+        this.add(dropped);
     },
 
     add(incoming) {
         this.error = '';
         incoming.forEach((file) => {
+            const isVideo = file.type.startsWith('video/');
+
+            if (isVideo && !this.videos) {
+                this.error = 'כאן אפשר להעלות תמונות בלבד.';
+                return;
+            }
             if (this.files.length >= this.max) {
-                this.error = `ניתן להעלות עד ${this.max} תמונות.`;
+                this.error = `ניתן להעלות עד ${this.max} קבצים.`;
                 return;
             }
-            if (file.size > this.maxSizeMb * 1024 * 1024) {
-                this.error = `הקובץ "${file.name}" גדול מ-${this.maxSizeMb}MB.`;
+
+            const limitMb = isVideo ? this.maxVideoMb : this.maxImageMb;
+            if (file.size > limitMb * 1024 * 1024) {
+                this.error = `הקובץ "${file.name}" גדול מ-${limitMb}MB.`;
                 return;
             }
+
             this.files.push(file);
-            this.previews.push({ name: file.name, url: URL.createObjectURL(file) });
+            this.previews.push({ name: file.name, url: URL.createObjectURL(file), isVideo });
         });
         this.sync();
     },

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\MediaType;
 use App\Enums\MemoryStatus;
 use App\Models\Memorial;
 use App\Models\Memory;
@@ -104,13 +105,173 @@ class MemoryTest extends TestCase
         $this->post($this->shareUrl(), [
             'author_name' => 'יעל',
             'body' => '<p>עם תמונות</p>',
-            'images' => [UploadedFile::fake()->image('a.jpg', 800, 600), UploadedFile::fake()->image('b.jpg', 600, 800)],
+            'media' => [UploadedFile::fake()->image('a.jpg', 800, 600), UploadedFile::fake()->image('b.jpg', 600, 800)],
         ]);
 
         $memory = Memory::first();
         $this->assertCount(2, $memory->images);
         Storage::disk('public')->assertExists($memory->images->first()->path);
         Storage::disk('public')->assertExists($memory->images->first()->thumb_path);
+    }
+
+    public function test_a_video_can_be_attached(): void
+    {
+        Storage::fake('public');
+
+        $this->post($this->shareUrl(), [
+            'author_name' => 'יעל',
+            'body' => '<p>עם סרטון</p>',
+            'media' => [UploadedFile::fake()->create('clip.mp4', 2048, 'video/mp4')],
+        ])->assertSessionHasNoErrors();
+
+        $memory = Memory::first();
+        $video = $memory->media->first();
+
+        $this->assertCount(1, $memory->media);
+        $this->assertTrue($video->is_video);
+        $this->assertSame(MediaType::Video, $video->type);
+        $this->assertStringEndsWith('.mp4', $video->path);
+        Storage::disk('public')->assertExists($video->path);
+    }
+
+    public function test_photos_and_a_video_can_be_mixed(): void
+    {
+        Storage::fake('public');
+
+        $this->post($this->shareUrl(), [
+            'author_name' => 'יעל',
+            'body' => '<p>גם וגם</p>',
+            'media' => [
+                UploadedFile::fake()->image('a.jpg', 800, 600),
+                UploadedFile::fake()->create('clip.mp4', 1024, 'video/mp4'),
+                UploadedFile::fake()->image('b.jpg', 600, 800),
+            ],
+        ])->assertSessionHasNoErrors();
+
+        $memory = Memory::first();
+
+        $this->assertCount(3, $memory->media);
+        $this->assertCount(2, $memory->images);
+        $this->assertCount(1, $memory->videos);
+        // The card image is the first photo, never the video.
+        $this->assertFalse($memory->cover->is_video);
+    }
+
+    public function test_a_video_becomes_the_cover_when_there_is_no_photo(): void
+    {
+        Storage::fake('public');
+
+        $this->post($this->shareUrl(), [
+            'author_name' => 'יעל',
+            'body' => '<p>רק סרטון</p>',
+            'media' => [UploadedFile::fake()->create('clip.mp4', 1024, 'video/mp4')],
+        ]);
+
+        $this->assertTrue(Memory::first()->cover->is_video);
+    }
+
+    public function test_an_oversized_video_is_rejected(): void
+    {
+        Storage::fake('public');
+
+        $this->from($this->shareUrl())->post($this->shareUrl(), [
+            'author_name' => 'יעל',
+            'body' => '<p>סרטון ענק</p>',
+            'media' => [UploadedFile::fake()->create('huge.mp4', 70000, 'video/mp4')],
+        ])->assertSessionHasErrors('media.0');
+
+        $this->assertSame(0, Memory::count());
+    }
+
+    public function test_an_unsupported_file_type_is_rejected(): void
+    {
+        Storage::fake('public');
+
+        $this->from($this->shareUrl())->post($this->shareUrl(), [
+            'author_name' => 'יעל',
+            'body' => '<p>קובץ אסור</p>',
+            'media' => [UploadedFile::fake()->create('notes.pdf', 100, 'application/pdf')],
+        ])->assertSessionHasErrors('media.0');
+    }
+
+    public function test_the_number_of_files_is_capped(): void
+    {
+        Storage::fake('public');
+
+        $files = [];
+        for ($i = 0; $i < 12; $i++) {
+            $files[] = UploadedFile::fake()->image("p{$i}.jpg", 400, 300);
+        }
+
+        $this->from($this->shareUrl())->post($this->shareUrl(), [
+            'author_name' => 'יעל',
+            'body' => '<p>יותר מדי</p>',
+            'media' => $files,
+        ])->assertSessionHasErrors('media');
+    }
+
+    /* ------------------------------------------------ browsing between memories */
+
+    public function test_a_memory_links_to_the_previous_and_next_one(): void
+    {
+        $oldest = Memory::factory()->for($this->memorial)->create(['author_name' => 'ראשון', 'created_at' => now()->subDays(3)]);
+        $middle = Memory::factory()->for($this->memorial)->create(['author_name' => 'אמצעי', 'created_at' => now()->subDays(2)]);
+        $newest = Memory::factory()->for($this->memorial)->create(['author_name' => 'אחרון', 'created_at' => now()->subDay()]);
+
+        $response = $this->get(route('memories.show', [$this->memorial, $middle]));
+
+        $response->assertOk()
+            ->assertSee(route('memories.show', [$this->memorial, $newest]), false)
+            ->assertSee(route('memories.show', [$this->memorial, $oldest]), false)
+            ->assertSee('הזיכרון הקודם')
+            ->assertSee('הזיכרון הבא')
+            ->assertSee('זיכרון 2 מתוך 3');
+    }
+
+    public function test_the_newest_memory_has_no_previous_link(): void
+    {
+        Memory::factory()->for($this->memorial)->create(['created_at' => now()->subDays(2)]);
+        $newest = Memory::factory()->for($this->memorial)->create(['created_at' => now()->subDay()]);
+
+        $this->get(route('memories.show', [$this->memorial, $newest]))
+            ->assertOk()
+            ->assertDontSee('הזיכרון הקודם')
+            ->assertSee('הזיכרון הבא')
+            ->assertSee('זיכרון 1 מתוך 2');
+    }
+
+    public function test_the_oldest_memory_has_no_next_link(): void
+    {
+        $oldest = Memory::factory()->for($this->memorial)->create(['created_at' => now()->subDays(2)]);
+        Memory::factory()->for($this->memorial)->create(['created_at' => now()->subDay()]);
+
+        $this->get(route('memories.show', [$this->memorial, $oldest]))
+            ->assertOk()
+            ->assertSee('הזיכרון הקודם')
+            ->assertDontSee('הזיכרון הבא')
+            ->assertSee('זיכרון 2 מתוך 2');
+    }
+
+    public function test_navigation_skips_memories_that_are_not_approved(): void
+    {
+        $oldest = Memory::factory()->for($this->memorial)->create(['author_name' => 'ישן', 'created_at' => now()->subDays(3)]);
+        Memory::factory()->for($this->memorial)->pending()->create(['author_name' => 'ממתין', 'created_at' => now()->subDays(2)]);
+        $newest = Memory::factory()->for($this->memorial)->create(['author_name' => 'חדש', 'created_at' => now()->subDay()]);
+
+        $this->get(route('memories.show', [$this->memorial, $oldest]))
+            ->assertOk()
+            ->assertSee(route('memories.show', [$this->memorial, $newest]), false)
+            ->assertSee('זיכרון 2 מתוך 2');
+    }
+
+    public function test_the_lone_memory_shows_no_navigation(): void
+    {
+        $only = Memory::factory()->for($this->memorial)->create();
+
+        $this->get(route('memories.show', [$this->memorial, $only]))
+            ->assertOk()
+            ->assertDontSee('הזיכרון הקודם')
+            ->assertDontSee('הזיכרון הבא');
     }
 
     public function test_it_validates_the_body(): void

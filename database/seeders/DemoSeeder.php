@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Enums\Gender;
+use App\Enums\MediaType;
 use App\Enums\MemoryStatus;
 use App\Enums\Religion;
 use App\Models\Memorial;
@@ -87,7 +88,7 @@ class DemoSeeder extends Seeder
                 'updated_at' => $date.' 10:00:00',
             ]);
             if ($ratio) {
-                $memory->images()->create($images->photo("memorials/{$memorial->id}/memories", $ratio[0], $ratio[1], 20 + $i) + ['sort_order' => 0]);
+                $memory->media()->create($images->photo("memorials/{$memorial->id}/memories", $ratio[0], $ratio[1], 20 + $i) + ['type' => MediaType::Image, 'sort_order' => 0]);
             }
         }
 
@@ -101,7 +102,7 @@ class DemoSeeder extends Seeder
                 'submitted_via' => 'link',
             ]);
             if ($j === 0) {
-                $memory->images()->create($images->photo("memorials/{$memorial->id}/memories", 4, 3, 40) + ['sort_order' => 0]);
+                $memory->media()->create($images->photo("memorials/{$memorial->id}/memories", 4, 3, 40) + ['type' => MediaType::Image, 'sort_order' => 0]);
             }
         }
 

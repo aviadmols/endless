@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\MediaType;
 use App\Enums\MemoryStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -38,9 +39,20 @@ class Memory extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function images(): HasMany
+    /** Photos and videos together, in display order. */
+    public function media(): HasMany
     {
         return $this->hasMany(MemoryImage::class)->orderBy('sort_order')->orderBy('id');
+    }
+
+    public function images(): HasMany
+    {
+        return $this->media()->images();
+    }
+
+    public function videos(): HasMany
+    {
+        return $this->media()->videos();
     }
 
     /* ------------------------------------------------------------ scopes */
@@ -67,14 +79,17 @@ class Memory extends Model
         return $this->status === MemoryStatus::Approved;
     }
 
+    /** The card image for the feed: the first photo, or the first video as a fallback. */
     public function getCoverAttribute(): ?MemoryImage
     {
-        return $this->images->first();
+        $media = $this->relationLoaded('media') ? $this->media : $this->media()->get();
+
+        return $media->firstWhere('type', MediaType::Image) ?? $media->first();
     }
 
-    public function getHasImagesAttribute(): bool
+    public function getHasMediaAttribute(): bool
     {
-        return $this->images->isNotEmpty();
+        return ($this->relationLoaded('media') ? $this->media : $this->media()->get())->isNotEmpty();
     }
 
     public function excerpt(int $words = 16): string

@@ -27,8 +27,8 @@ class OverviewController extends Controller
             'images as images_count',
         ]);
 
-        $pending = $memorial->pendingMemories()->with('images')->limit(5)->get();
-        $recent = $memorial->approvedMemories()->with('images')->limit(4)->get();
+        $pending = $memorial->pendingMemories()->with('media')->limit(5)->get();
+        $recent = $memorial->approvedMemories()->with('media')->limit(4)->get();
 
         $completeness = $this->completeness($memorial);
 

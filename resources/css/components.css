@@ -29,12 +29,13 @@
 }
 .logo img { height: 18px; width: auto; }
 
-.site-nav { display: none; align-items: center; gap: 28px; }
-@media (min-width: 1024px) { .site-nav { display: flex; } }
-.site-nav a { font-size: var(--fs-small); font-weight: var(--fw-medium); transition: opacity var(--t); }
+.site-nav { display: none; align-items: center; gap: 22px; }
+@media (min-width: 768px) { .site-nav { display: flex; } }
+.site-nav a { font-size: var(--fs-small); font-weight: var(--fw-medium); transition: opacity var(--t); white-space: nowrap; }
 .site-nav a:hover { opacity: 0.6; }
 
-.header-actions { display: flex; align-items: center; gap: 14px; }
+/* Login / create-page / burger sit together at the end of the bar. */
+.header-actions { display: flex; align-items: center; gap: 16px; margin-inline-start: auto; }
 
 .burger {
     width: 34px; height: 34px;

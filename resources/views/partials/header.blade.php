@@ -9,24 +9,22 @@
             @endif
         </a>
 
-        <nav class="site-nav" aria-label="ניווט ראשי">
-            @auth
-                <a href="{{ route('dashboard.index') }}">האזור האישי</a>
-                @if (auth()->user()->is_admin)
-                    <a href="{{ route('admin.index') }}">ניהול</a>
-                @endif
-            @else
-                <a href="{{ route('login') }}">כניסה</a>
-            @endauth
-        </nav>
-
         <div class="header-actions">
             @auth
+                <nav class="site-nav" aria-label="ניווט ראשי">
+                    <a href="{{ route('dashboard.index') }}">האזור האישי</a>
+                    @if (auth()->user()->is_admin)
+                        <a href="{{ route('admin.index') }}">ניהול</a>
+                    @endif
+                </nav>
                 <form method="POST" action="{{ route('logout') }}" class="hide-mobile">
                     @csrf
                     <button type="submit" class="btn btn--ghost btn--sm">יציאה</button>
                 </form>
             @else
+                <nav class="site-nav" aria-label="ניווט ראשי">
+                    <a href="{{ route('login') }}">כניסה</a>
+                </nav>
                 <a href="{{ route('register') }}" class="btn btn--ghost btn--sm">יצירת עמוד</a>
             @endauth
 

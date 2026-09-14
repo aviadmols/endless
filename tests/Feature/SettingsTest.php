@@ -201,7 +201,7 @@ class SettingsTest extends TestCase
             'landing__signature_name' => 'צוות',
         ])->assertSessionHasNoErrors();
 
-        $this->get('/')->assertOk()->assertSee('תכונה ראשונה')->assertSee('שורה א');
+        $this->get('/shiryon')->assertOk()->assertSee('תכונה ראשונה')->assertSee('שורה א');
     }
 
     public function test_the_admin_can_work_as_an_owner_and_come_back(): void

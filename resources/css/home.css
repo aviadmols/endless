@@ -1,0 +1,384 @@
+/* ==========================================================================
+   Home page — the endless.day front page, measurement-for-measurement,
+   mirrored to RTL and re-typed in Heebo.
+   ========================================================================== */
+
+.home {
+    /* Circular Std on the reference; Heebo sits one step lighter at the same size. */
+    --home-display: 55px;
+    --home-display-sm: 33px;
+    --home-body: 19px;
+    --home-body-sm: 16px;
+    --home-pad: 100px;
+    --home-container: 1000px;
+}
+
+/* The header is fixed, so anchored sections need to clear it. */
+.home [id] { scroll-margin-block-start: var(--header-h); }
+
+.home-wrap {
+    width: 100%;
+    max-width: var(--home-container);
+    margin-inline: auto;
+    padding-inline: 20px;
+}
+
+.home-display {
+    font-size: var(--home-display-sm);
+    font-weight: var(--fw-light);
+    line-height: 1.1;
+    letter-spacing: 0;
+}
+
+.home-lede {
+    font-size: var(--home-body-sm);
+    font-weight: var(--fw-light);
+    line-height: 1.5;
+}
+
+@media (min-width: 768px) {
+    .home-display { font-size: var(--home-display); }
+    .home-lede { font-size: var(--home-body); }
+}
+
+/* --------------------------------------------------------------- 1. hero */
+
+/* The header floats over the hero, so the section starts at the very top. */
+.home-hero {
+    display: flex;
+    flex-direction: column-reverse;
+    min-height: 100vh;
+    background: var(--paper-warm);
+}
+
+.home-hero__text {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* The 15% side padding hangs off an inner box so the percentage resolves against
+   the column, the way the reference's column wrapper does — on the flex item
+   itself it would resolve against the whole section and blow the row open. */
+.home-hero__inner {
+    width: 100%;
+    padding: 35px 20px;
+    text-align: center;
+}
+
+.home-hero__media {
+    flex: 0 0 auto;
+    min-width: 0;
+    min-height: 300px;
+    background-image: url('/images/brand/home-bg.webp');
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+@media (min-width: 768px) {
+    .home-hero { flex-direction: row; }
+    .home-hero__text { flex: 0 0 40%; }
+    .home-hero__inner { padding: 0 15%; text-align: start; }
+    .home-hero__media {
+        flex: 0 0 60%;
+        min-height: 100vh;
+    }
+}
+
+.home-hero__title { margin-block-end: 15px; }
+.home-hero__sub { margin-block-end: 30px; }
+
+.home-hero__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+.home-hero__actions .btn { font-size: 14px; width: 100%; white-space: nowrap; }
+
+@media (min-width: 768px) {
+    .home-hero__title { margin-block-end: 20px; }
+    .home-hero__actions { flex-direction: row; width: auto; }
+    .home-hero__actions .btn { font-size: var(--fs-body); width: auto; flex: 0 0 auto; }
+}
+
+/* the three reassurances under the rule */
+.home-assures {
+    list-style: none;
+    width: 100%;
+    margin-block-start: 45px;
+    padding-block-start: 20px;
+    border-block-start: 1px solid var(--rule);
+}
+.home-assures li {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 14px;
+    font-weight: var(--fw-light);
+    line-height: 1.5;
+}
+.home-assures li + li { margin-block-start: 7px; }
+.home-assures svg { flex: 0 0 16px; width: 16px; height: 16px; fill: var(--ink); }
+
+@media (min-width: 768px) {
+    .home-assures { margin-block-start: 55px; padding-block-start: 35px; }
+}
+
+/* ------------------------------------------------------- 2. who it is for */
+
+.home-strip {
+    background: var(--paper);
+    padding-block: 35px;
+}
+.home-strip__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 35px;
+    align-items: start;
+}
+.home-strip__item {
+    text-align: center;
+    padding-inline: 20px;
+}
+.home-strip__item svg {
+    width: 35px;
+    height: 35px;
+    margin-inline: auto;
+    margin-block-end: 15px;
+    fill: var(--ink);
+}
+.home-strip__item p {
+    font-size: var(--home-body-sm);
+    font-weight: var(--fw-light);
+    line-height: 1.4;
+}
+
+@media (min-width: 768px) {
+    .home-strip { padding-block: var(--home-pad); }
+    .home-strip__grid { grid-template-columns: repeat(3, 1fr); gap: 0; }
+    .home-strip__item { padding-inline: 50px; }
+    .home-strip__item svg { width: 45px; height: 45px; }
+    .home-strip__item p { font-size: 17px; }
+}
+
+/* ---------------------------------------------------------- 3. how it works */
+
+.home-how {
+    background: linear-gradient(180deg, #ffffff 0%, var(--paper-warm) 100%);
+    padding-block: 35px 50px;
+    position: relative;
+    z-index: 2;
+}
+.home-how__title { text-align: center; margin-block-end: 15px; }
+
+@media (min-width: 768px) {
+    .home-how { padding-block: 0 var(--home-pad); }
+    .home-how__title { margin-block-end: 20px; }
+}
+
+/* The cards are sticky; each one parks 20px lower than the one before it and
+   the JS scales / desaturates the cards underneath as the stack builds up. */
+.stack-cards {
+    --card-offset: 20px;
+    --card-height: 400px;
+    --card-top: 60px;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(4, var(--card-height));
+    gap: 100px;
+    justify-items: center;
+    padding-block-end: calc(4 * var(--card-offset));
+}
+
+.stack-card {
+    position: sticky;
+    top: var(--card-top);
+    width: 100%;
+    padding-block-start: calc(var(--n) * var(--card-offset));
+    transform-origin: 50% 0%;
+    will-change: transform, filter;
+}
+
+.stack-card__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    height: var(--card-height);
+    min-height: var(--card-height);
+    overflow: hidden;
+    background: var(--paper);
+    border-radius: var(--r-img);
+    box-shadow: 0 10px 40px 0 rgb(0 0 0 / 30%);
+}
+
+.stack-card__text {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    text-align: start;
+    width: 100%;
+    height: 50%;
+    padding: 25px;
+}
+.stack-card__text h3 {
+    font-size: 19px;
+    font-weight: var(--fw-medium);
+    line-height: 1.2;
+}
+.stack-card__text p {
+    font-size: var(--home-body-sm);
+    font-weight: var(--fw-light);
+    line-height: 1.42;
+    margin-block-start: 15px;
+}
+
+.stack-card__figure { flex-grow: 1; overflow: hidden; }
+.stack-card__figure img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center bottom;
+}
+
+@media (min-width: 768px) {
+    .stack-cards { --card-height: 300px; }
+    .stack-card__inner { flex-direction: row; }
+    .stack-card__text { width: 50%; height: 100%; padding: 40px; }
+    .stack-card__text h3 { font-size: 23px; }
+    .stack-card__text p { font-size: var(--home-body); }
+}
+
+@media (min-width: 1025px) {
+    .stack-cards { --card-top: 150px; }
+}
+
+/* --------------------------------------------------------- 4. why endless */
+
+.home-why {
+    display: flex;
+    flex-direction: column-reverse;
+    background: var(--paper);
+}
+.home-why__text { flex: 1 1 auto; min-width: 0; }
+.home-why__inner { padding-block: 35px; }
+.home-why__media {
+    flex: 0 0 auto;
+    min-width: 0;
+    min-height: 300px;
+    background-image: url('/images/brand/home-bg-mobile.webp');
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+.home-why__title { margin-block-end: 15px; padding-inline: 25px; }
+.home-why__lede { margin-block-end: 30px; padding-inline: 25px; }
+
+.home-why__grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 30px 20px;
+    padding-inline: 20px;
+}
+.home-why__item svg {
+    width: 35px;
+    height: 35px;
+    margin-block-end: 15px;
+    fill: var(--ink);
+}
+.home-why__item h3 {
+    font-size: var(--home-body-sm);
+    font-weight: var(--fw-medium);
+    line-height: 1.4;
+    margin-block-end: 8px;
+}
+.home-why__item p {
+    font-size: 14px;
+    font-weight: var(--fw-light);
+    line-height: 1.4;
+}
+
+@media (min-width: 768px) {
+    .home-why { flex-direction: row; align-items: stretch; }
+    .home-why__text { flex: 0 0 50%; display: flex; align-items: center; }
+    .home-why__inner { width: 100%; padding: 15%; }
+    .home-why__media { flex: 0 0 50%; min-height: 0; }
+    .home-why__title,
+    .home-why__lede { padding-inline: 0; }
+    .home-why__title { margin-block-end: 20px; }
+    .home-why__grid { padding-inline: 0; }
+    .home-why__item svg { width: 45px; height: 45px; }
+    .home-why__item h3 { font-size: var(--home-body); }
+    .home-why__item p { font-size: var(--fs-card-title); }
+}
+
+/* -------------------------------------------------------------- 5. stories */
+
+.home-stories { padding-block: 35px; }
+.home-stories__title { text-align: center; line-height: 1.2; margin-block-end: 25px; }
+
+.home-stories__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 25px;
+}
+
+.home-story {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    border-radius: var(--r-img);
+    padding: 300px 20px 20px;
+    color: var(--paper);
+    background-position: bottom center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+.home-story img { width: 35px; margin-block-end: 20px; }
+.home-story blockquote {
+    font-size: 20px;
+    font-weight: var(--fw-medium);
+    line-height: 1.2;
+    margin-block-end: 20px;
+}
+.home-story figcaption {
+    font-size: var(--home-body-sm);
+    font-weight: var(--fw-light);
+    line-height: 1.2;
+}
+
+@media (min-width: 768px) {
+    .home-stories { padding-block: var(--home-pad); }
+    .home-stories__title { margin-block-end: 40px; }
+    .home-stories__grid { grid-template-columns: repeat(2, 1fr); gap: 40px; padding-inline: 20px; }
+    .home-story { padding: 400px 50px 50px; }
+    .home-story img { width: 50px; }
+    .home-story blockquote { font-size: 27px; }
+    .home-story figcaption { font-size: var(--home-body); }
+}
+
+/* ------------------------------------------------------------------ 6. cta */
+
+.home-cta {
+    background: linear-gradient(180deg, var(--paper-warm) 0%, #ffffff 100%);
+    padding-block: 35px;
+    text-align: center;
+}
+.home-cta__title { font-size: 30px; margin-block-end: 15px; }
+.home-cta__sub { margin-block-end: 30px; }
+.home-cta .btn { width: 100%; font-size: 14px; }
+
+@media (min-width: 768px) {
+    .home-cta { padding-block: var(--home-pad); }
+    .home-cta__title { font-size: var(--home-display); line-height: 1.2; margin-block-end: 20px; }
+    .home-cta .btn { width: auto; font-size: var(--fs-body); }
+}
+
+/* The reference only breaks this line where there is room for it. */
+.br-desktop { display: none; }
+@media (min-width: 768px) { .br-desktop { display: inline; } }

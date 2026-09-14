@@ -3,7 +3,7 @@
         <p>© {{ date('Y') }} כל הזכויות שמורות ל-{{ setting('general.site_name', 'Endless') }}</p>
 
         <p>
-            <a href="{{ route('home') }}">דף הבית</a>
+            <a href="{{ route('shiryon') }}">חייל השריון</a>
             <span aria-hidden="true"> | </span>
             <a href="{{ route('register') }}">יצירת עמוד הנצחה</a>
             @if (setting('general.contact_email'))

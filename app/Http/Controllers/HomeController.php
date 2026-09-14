@@ -13,13 +13,22 @@ use Throwable;
 
 class HomeController extends Controller
 {
-    public function index(SettingsRepository $settings): View
+    public function index(): View
+    {
+        return view('home');
+    }
+
+    /**
+     * The "חייל השריון" landing page — the memorial-page pitch we send to bereaved
+     * families. Its copy lives in the `landing` settings group.
+     */
+    public function shiryon(SettingsRepository $settings): View
     {
         $landing = $settings->group('landing');
         $features = json_decode((string) ($landing['features'] ?? '[]'), true) ?: [];
         $howList = array_values(array_filter(array_map('trim', preg_split('/\r?\n/', (string) ($landing['how_list'] ?? '')))));
 
-        return view('home', [
+        return view('shiryon', [
             'landing' => $landing,
             'features' => $features,
             'howList' => $howList,

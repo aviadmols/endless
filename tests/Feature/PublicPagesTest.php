@@ -15,7 +15,16 @@ class PublicPagesTest extends TestCase
 
     public function test_the_home_page_renders(): void
     {
-        $this->get('/')->assertOk()->assertSee('משפחה יקרה');
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('אוספים זיכרונות')
+            ->assertSee('איך זה עובד')
+            ->assertSee('סיפורים שנשארים איתכם');
+    }
+
+    public function test_the_shiryon_landing_page_renders(): void
+    {
+        $this->get('/shiryon')->assertOk()->assertSee('משפחה יקרה');
     }
 
     public function test_a_lead_is_stored(): void
@@ -31,12 +40,12 @@ class PublicPagesTest extends TestCase
 
     public function test_the_lead_form_validates(): void
     {
-        $this->from('/')->post('/leads', ['name' => ''])->assertSessionHasErrors(['name', 'email']);
+        $this->from('/shiryon')->post('/leads', ['name' => ''])->assertSessionHasErrors(['name', 'email']);
     }
 
     public function test_the_honeypot_blocks_bots(): void
     {
-        $this->from('/')->post('/leads', [
+        $this->from('/shiryon')->post('/leads', [
             'name' => 'Bot',
             'email' => 'bot@example.com',
             'website' => 'http://spam.example',

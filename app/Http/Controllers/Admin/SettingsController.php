@@ -67,8 +67,8 @@ class SettingsController extends Controller
                 'test' => ['route' => 'admin.settings.sms.test', 'label' => 'שליחת SMS בדיקה', 'input' => 'tel', 'placeholder' => '050-0000000'],
             ],
             'landing' => [
-                'title' => 'תוכן עמוד הבית',
-                'intro' => 'הטקסטים והתמונות של עמוד הנחיתה (בסגנון "יד לשריון").',
+                'title' => 'תוכן עמוד חייל השריון',
+                'intro' => 'הטקסטים והתמונות של עמוד הנחיתה שבכתובת /shiryon.',
                 'fields' => [
                     'landing.partner_logo_1' => ['label' => 'לוגו שותף 1', 'type' => 'image'],
                     'landing.partner_logo_2' => ['label' => 'לוגו שותף 2', 'type' => 'image'],

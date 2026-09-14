@@ -14,7 +14,7 @@
     z-index: 60;
     transition: background var(--t), box-shadow var(--t);
 }
-.site-header.is-scrolled { background: rgb(249 248 245 / 92%); backdrop-filter: blur(8px); box-shadow: 0 1px 0 rgb(0 0 0 / 5%); }
+.site-header.is-scrolled { background: rgb(255 255 255 / 80%); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
 .site-header__inner { width: 100%; max-width: 1440px; margin-inline: auto; padding-inline: 30px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
 @media (max-width: 767px) { .site-header__inner { padding-inline: 20px; } }
 
@@ -27,21 +27,27 @@
     line-height: 1;
     white-space: nowrap;
 }
-.logo img { height: 18px; width: auto; }
+.logo img { width: 100px; height: auto; }
+@media (min-width: 768px) { .logo img { width: 110px; } }
 
 .site-nav { display: none; align-items: center; gap: 22px; }
 @media (min-width: 768px) { .site-nav { display: flex; } }
-.site-nav a { font-size: var(--fs-small); font-weight: var(--fw-medium); transition: opacity var(--t); white-space: nowrap; }
+.site-nav a { font-size: 16px; font-weight: var(--fw-medium); letter-spacing: 0; transition: opacity var(--t); white-space: nowrap; }
 .site-nav a:hover { opacity: 0.6; }
 
 /* Login / create-page / burger sit together at the end of the bar. */
 .header-actions { display: flex; align-items: center; gap: 16px; margin-inline-start: auto; }
+/* The reference's header pill: ink hairline, tight padding, nav-sized type. */
+.header-actions .btn--sm { padding: 2px 15px; font-size: 14px; font-weight: var(--fw-medium); border-color: var(--ink); }
+@media (min-width: 768px) { .header-actions .btn--sm { padding: 5px 20px; font-size: 16px; } }
 
 .burger {
     width: 34px; height: 34px;
     display: grid; place-items: center;
     background: none; border: 0; cursor: pointer; padding: 0;
 }
+/* Above the breakpoint `.site-nav` carries the same links, so the burger stands down. */
+@media (min-width: 768px) { .burger { display: none; } }
 .burger span { display: block; width: 22px; height: 1.5px; background: var(--ink); position: relative; transition: transform var(--t), opacity var(--t); }
 .burger span::before, .burger span::after { content: ''; position: absolute; inset-inline-start: 0; width: 22px; height: 1.5px; background: var(--ink); transition: transform var(--t), opacity var(--t); }
 .burger span::before { inset-block-start: -7px; }
@@ -70,12 +76,19 @@ body.menu-open { overflow: hidden; }
 
 .site-footer {
     background: var(--paper);
-    padding: 22px var(--gutter);
-    font-size: 14px;
+    padding: 35px 20px;
+    font-size: 11px;
+    letter-spacing: 0.5px;
     color: var(--ink);
+    text-align: center;
 }
-.site-footer__inner { max-width: 1440px; margin-inline: auto; display: flex; flex-wrap: wrap; gap: 10px 24px; align-items: center; justify-content: space-between; }
+.site-footer__inner { max-width: 1440px; margin-inline: auto; display: flex; flex-wrap: wrap; gap: 10px 24px; align-items: center; justify-content: center; }
 .site-footer a:hover { text-decoration: underline; text-underline-offset: 3px; }
+@media (min-width: 768px) {
+    .site-footer { padding: 10px 20px; font-size: 14px; text-align: start; }
+    .site-footer__inner { justify-content: space-between; }
+    .site-footer__inner p:last-child { text-align: end; }
+}
 
 .page-body { padding-block-start: var(--header-h); min-height: 60vh; }
 .page-body--flush { padding-block-start: 0; }

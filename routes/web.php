@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/shiryon', [HomeController::class, 'shiryon'])->name('shiryon');
 Route::post('/leads', [HomeController::class, 'storeLead'])->middleware('throttle:leads')->name('leads.store');
 
 Route::middleware('guest')->group(function () {

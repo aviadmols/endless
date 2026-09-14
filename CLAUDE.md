@@ -5,7 +5,7 @@ Laravel 13 app for memorial pages. Hebrew/RTL throughout. See `README.md` for se
 ## Commands
 
 ```bash
-php artisan test                 # 79 tests, keep them green
+php artisan test                 # 91 tests, keep them green
 php artisan migrate:fresh --seed # rebuild the demo memorial at /m/kochav
 npm run dev                      # Vite watch
 npm run build                    # required before checking pages in a browser
@@ -16,8 +16,10 @@ PHP lives at `C:\Users\user\.config\herd\bin\php84\php.exe` (Herd); `php` and `c
 ## Design system
 
 The visual language is copied measurement-by-measurement from the reference pages on `endless.day`
-(the "yad-lashiryon" landing page, the `person/kochav` memorial page, the `/ko/` feed and the `/join/` form),
-re-typed in **Heebo** — the reference's three fonts are deliberately not used.
+(the front page, the "yad-lashiryon" landing page, the `person/kochav` memorial page, the `/ko/` feed
+and the `/join/` form), re-typed in **Heebo** — the reference's three fonts are deliberately not used.
+Circular Std maps one weight lighter in Heebo (Cir 400 → Heebo 300, Cir 600 → Heebo 500); the
+reference's `word-spacing: -13px` compensates for its display font's wide spaces and is not carried over.
 
 Tokens live in `resources/css/tokens.css`. The values that matter and should not drift:
 
@@ -39,8 +41,22 @@ Tokens live in `resources/css/tokens.css`. The values that matter and should not
 Rounded corners are intentional here and override the usual sharp-corner house style — the brief was
 "exactly like the reference".
 
+## The two landing pages
+
+`/` is a 1:1 Hebrew clone of the `endless.day` front page — hardcoded copy in `home.blade.php`,
+its own `resources/css/home.css`, reference photography in `public/images/home/`. `/shiryon`
+(`shiryon.blade.php`) is the old "yad lashiryon" pitch page and is the one driven by the
+`landing` settings group; the lead form and `POST /leads` live there.
+
 ## Things that will bite you
 
+- **Percentage padding on a flex item resolves against the flex container, not the item.** The
+  reference's `padding: 0 15%` columns are Elementor's inner wrapper, so `.home-hero__inner` /
+  `.home-why__inner` exist to reproduce that. Putting the padding on the flex item itself blows the
+  row past 100vw.
+- **`stacking.js` mirrors the reference's GSAP numbers** — each covered card loses 6% scale and gains
+  30% grayscale, interpolated from `(index / count)` of the wrapper hitting the viewport top until the
+  wrapper's bottom hits the viewport middle. Change the card count and the constants still hold.
 - **Masonry re-parents its cards.** `masonry.js` empties the container and rebuilds columns, which detaches
   nodes from the IntersectionObserver. It fires a `masonry:layout` event and `reveal.js` re-observes; if you
   add another observer over those cards, listen for that event too.

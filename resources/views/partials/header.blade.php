@@ -18,6 +18,8 @@
                 </form>
             @else
                 <nav class="site-nav" aria-label="ניווט ראשי">
+                    <a href="{{ route('home') }}#how">איך זה עובד</a>
+                    <a href="{{ route('shiryon') }}">חייל השריון</a>
                     <a href="{{ route('login') }}">כניסה</a>
                 </nav>
                 <a href="{{ route('register') }}" class="btn btn--ghost btn--sm">יצירת עמוד</a>
@@ -46,6 +48,9 @@
         </form>
     @else
         <a href="{{ route('home') }}">דף הבית</a>
+        <a href="{{ route('home') }}#how">איך זה עובד</a>
+        <a href="{{ route('home') }}#why">למה Endless</a>
+        <a href="{{ route('shiryon') }}">חייל השריון</a>
         <a href="{{ route('login') }}">כניסה לאזור האישי</a>
         <a href="{{ route('register') }}" class="btn btn--block">יצירת עמוד הנצחה</a>
     @endauth

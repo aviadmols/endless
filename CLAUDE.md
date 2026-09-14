@@ -5,7 +5,7 @@ Laravel 13 app for memorial pages. Hebrew/RTL throughout. See `README.md` for se
 ## Commands
 
 ```bash
-php artisan test                 # 91 tests, keep them green
+php artisan test                 # 102 tests, keep them green
 php artisan migrate:fresh --seed # rebuild the demo memorial at /m/kochav
 npm run dev                      # Vite watch
 npm run build                    # required before checking pages in a browser
@@ -47,6 +47,19 @@ Rounded corners are intentional here and override the usual sharp-corner house s
 its own `resources/css/home.css`, reference photography in `public/images/home/`. `/shiryon`
 (`shiryon.blade.php`) is the old "yad lashiryon" pitch page and is the one driven by the
 `landing` settings group; the lead form and `POST /leads` live there.
+
+## The book builder
+
+`/dashboard/book` composes a memorial into printed pages (`BookComposer`). Two things keep it honest:
+
+- **The page budget is counted in rendered lines, not characters.** The body uses `white-space: pre-line`,
+  so a one-word line costs a whole line. `BookSize::linesPerPage()` / `charsPerLine()` were measured
+  against the preview by binary search — re-measure them if the book's type or padding changes.
+- **The preview is a scale model.** Type is sized in `cqw` off `--type-scale` (`21 / widthCm`), so a
+  landscape page draws smaller type at the same pane width, exactly as it would on paper. Size it in
+  px and the budget stops matching what the page shows.
+
+Ordering is deliberately closed — `Book` stores the draft so it can become an order when payments land.
 
 ## Things that will bite you
 

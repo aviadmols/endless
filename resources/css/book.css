@@ -1,0 +1,191 @@
+/* ==========================================================================
+   Book builder (personal area) — the option pickers and the flip-through.
+   ========================================================================== */
+
+/* ------------------------------------------------------------- what goes in */
+
+.choice-list { display: grid; gap: 10px; }
+
+.choice {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    border: 1px solid var(--rule);
+    border-radius: var(--r-input);
+    cursor: pointer;
+    transition: border-color var(--t), background var(--t);
+}
+.choice:hover { border-color: var(--ink-muted); }
+.choice:has(input:checked) { border-color: var(--ink); background: var(--soft); }
+.choice:has(input:focus-visible) { outline: 2px solid var(--ink); outline-offset: 2px; }
+.choice input { margin-block-start: 3px; accent-color: var(--ink); flex: 0 0 auto; }
+.choice__body { display: grid; gap: 3px; }
+.choice__label { font-size: var(--fs-body); }
+.choice__hint { font-size: var(--fs-micro); color: var(--ink-soft); line-height: 1.4; }
+
+/* ------------------------------------------------------------------- sizes */
+
+.size-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+
+.size-option { cursor: pointer; }
+.size-option input { position: absolute; opacity: 0; width: 0; height: 0; }
+.size-option__body {
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    padding: 16px 10px;
+    border: 1px solid var(--rule);
+    border-radius: var(--r-input);
+    text-align: center;
+    transition: border-color var(--t), background var(--t);
+}
+.size-option:hover .size-option__body { border-color: var(--ink-muted); }
+.size-option:has(input:checked) .size-option__body { border-color: var(--ink); background: var(--soft); }
+.size-option:has(input:focus-visible) .size-option__body { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+/* A little proxy of the book's shape, scaled off its own ratio. */
+.size-option__shape {
+    width: calc(38px * min(1, var(--ratio)));
+    height: calc(38px / max(1, var(--ratio)));
+    border: 1px solid var(--ink);
+    border-radius: 3px;
+    margin-block-end: 4px;
+}
+.size-option__label { font-size: var(--fs-small); }
+.size-option__dims { font-size: var(--fs-micro); color: var(--ink-soft); }
+
+/* ------------------------------------------------------------------ copies */
+
+.copies { display: inline-flex; align-items: center; border: 1px solid var(--rule); border-radius: var(--r-input); overflow: hidden; }
+.copies__step {
+    width: 44px;
+    height: 46px;
+    background: var(--paper);
+    border: 0;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    transition: background var(--t);
+}
+.copies__step:hover { background: var(--soft); }
+.copies input {
+    width: 84px;
+    height: 46px;
+    border: 0;
+    border-inline: 1px solid var(--rule);
+    text-align: center;
+    font-family: var(--font);
+    font-size: var(--fs-body);
+    background: var(--paper);
+    color: var(--ink);
+    appearance: textfield;
+}
+.copies input::-webkit-outer-spin-button,
+.copies input::-webkit-inner-spin-button { appearance: none; margin: 0; }
+.copies input:focus { outline: none; box-shadow: inset 0 0 0 1px var(--ink); }
+
+/* -------------------------------------------------------------- the book */
+
+[data-book-preview] { transition: opacity var(--t); }
+[data-book-preview].is-loading { opacity: 0.45; }
+
+.book { display: grid; gap: 14px; }
+
+/* One page at a time, stacked so the pane keeps its height while you flip. */
+.book__stage {
+    display: grid;
+    aspect-ratio: var(--book-ratio, 0.75);
+    background: var(--soft);
+    border-radius: var(--r-img);
+    overflow: hidden;
+    box-shadow: var(--shadow-lift);
+}
+
+/* The preview is a scale model of the printed page, so its type is sized in
+   container units: the same text fills the same fraction of the page whatever
+   the pane is. That keeps the composer's per-page character budget honest. */
+.book__page {
+    grid-area: 1 / 1;
+    container-type: inline-size;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: calc(2.5cqw * var(--type-scale, 1));
+    padding: 8% 8% 12%;
+    background: var(--paper);
+    overflow: hidden;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity var(--t);
+}
+.book__page.is-current { visibility: visible; opacity: 1; }
+
+.book__folio {
+    position: absolute;
+    inset-block-end: 4%;
+    inset-inline-start: 8%;
+    font-size: calc(2.2cqw * var(--type-scale, 1));
+    color: var(--ink-muted);
+}
+
+.book__eyebrow { font-size: calc(2.2cqw * var(--type-scale, 1)); letter-spacing: calc(0.4cqw * var(--type-scale, 1)); color: var(--ink-soft); }
+.book__title { font-size: calc(3.8cqw * var(--type-scale, 1)); font-weight: var(--fw-medium); line-height: 1.3; }
+.book__body { font-size: calc(2.7cqw * var(--type-scale, 1)); font-weight: var(--fw-light); line-height: 1.65; white-space: pre-line; overflow: hidden; }
+.book__byline { margin-block-start: auto; font-size: calc(2.2cqw * var(--type-scale, 1)); letter-spacing: calc(0.1cqw * var(--type-scale, 1)); color: var(--ink-soft); }
+
+/* cover */
+.book__page--cover { padding: 0; justify-content: flex-end; gap: 0; background: var(--ink); }
+.book__cover-media { position: absolute; inset: 0; }
+.book__cover-media img { width: 100%; height: 100%; object-fit: cover; }
+.book__cover-media::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgb(0 0 0 / 10%) 40%, rgb(0 0 0 / 72%) 100%);
+}
+.book__cover-text { position: relative; padding: 8%; color: var(--paper); display: grid; gap: calc(1.2cqw * var(--type-scale, 1)); }
+.book__page--cover .book__eyebrow { color: rgb(255 255 255 / 78%); }
+.book__name { font-size: calc(6cqw * var(--type-scale, 1)); font-weight: var(--fw-light); line-height: 1.1; }
+.book__dates { font-size: calc(2.6cqw * var(--type-scale, 1)); letter-spacing: calc(0.4cqw * var(--type-scale, 1)); }
+.book__page--cover .book__folio { display: none; }
+
+/* chapter opener */
+.book__page--divider { justify-content: center; align-items: center; text-align: center; }
+.book__divider { display: grid; gap: calc(1.6cqw * var(--type-scale, 1)); }
+.book__divider h3 { font-size: calc(5.5cqw * var(--type-scale, 1)); font-weight: var(--fw-light); }
+
+/* Photo grid. `1fr` rows make the tiles share the height the page has left over
+   rather than growing to their own intrinsic size and pushing past the page. */
+.book__grid {
+    display: grid;
+    grid-template-columns: repeat(var(--cols, 2), 1fr);
+    grid-auto-rows: 1fr;
+    gap: calc(1.4cqw * var(--type-scale, 1));
+    flex: 1 1 0;
+    min-height: 0;
+    overflow: hidden;
+}
+.book__grid img { width: 100%; height: 100%; min-width: 0; min-height: 0; object-fit: cover; border-radius: 2px; }
+.book__page--memory .book__grid { flex: 0 0 40%; }
+
+/* closing */
+.book__page--closing { justify-content: center; align-items: center; text-align: center; }
+.book__closing { display: grid; gap: calc(3cqw * var(--type-scale, 1)); }
+.book__closing blockquote { font-size: calc(4.2cqw * var(--type-scale, 1)); font-weight: var(--fw-extralight); line-height: 1.4; }
+.book__page--closing .book__byline { margin-block-start: 0; }
+
+/* controls */
+.book__controls { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.book__controls .btn { min-width: 46px; }
+.book__controls .btn:disabled { opacity: 0.35; }
+.book__counter { font-size: var(--fs-micro); color: var(--ink-soft); }
+
+.book__scrub { width: 100%; accent-color: var(--ink); cursor: pointer; }
+
+@media (max-width: 767px) {
+    .size-list { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .size-option__body { padding: 12px 6px; }
+    .book__name { font-size: 22px; }
+}

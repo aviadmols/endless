@@ -71,6 +71,10 @@ Route::middleware('auth')->prefix('dashboard')->name('dashboard.')->group(functi
     Route::delete('/memories/{memory}', [Dashboard\MemoryController::class, 'destroy'])->name('memories.destroy');
     Route::delete('/memories/{memory}/images/{image}', [Dashboard\MemoryController::class, 'destroyImage'])->name('memories.images.destroy');
 
+    Route::get('/book', [Dashboard\BookController::class, 'index'])->name('book');
+    Route::get('/book/preview', [Dashboard\BookController::class, 'preview'])->name('book.preview');
+    Route::put('/book', [Dashboard\BookController::class, 'update'])->name('book.update');
+
     Route::get('/share', [Dashboard\ShareController::class, 'index'])->name('share');
     Route::post('/share/regenerate', [Dashboard\ShareController::class, 'regenerate'])->name('share.regenerate');
 

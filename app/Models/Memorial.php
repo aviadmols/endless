@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -74,6 +75,12 @@ class Memorial extends Model
     public function memories(): HasMany
     {
         return $this->hasMany(Memory::class)->latest();
+    }
+
+    /** The owner's saved book configuration, if they have opened that tab. */
+    public function book(): HasOne
+    {
+        return $this->hasOne(Book::class);
     }
 
     public function approvedMemories(): HasMany

@@ -26,6 +26,7 @@
                         @php($pending = $memorial->pendingMemories()->count())
                         @if ($pending)<span class="count">{{ $pending }}</span>@endif
                     </a>
+                    <a href="{{ route('dashboard.book') }}" @class(['is-active' => request()->routeIs('dashboard.book*')])>ספר</a>
                     <a href="{{ route('dashboard.share') }}" @class(['is-active' => request()->routeIs('dashboard.share')])>שיתוף</a>
                     <a href="{{ route('dashboard.account.edit') }}" @class(['is-active' => request()->routeIs('dashboard.account.*')])>החשבון שלי</a>
                     <a href="{{ route('memorials.show', $memorial) }}" target="_blank" rel="noopener">צפייה בעמוד ↗</a>

@@ -43,15 +43,11 @@
                             @error('deceased_gender')<span class="error" style="color: var(--danger); font-size: var(--fs-micro);">{{ $message }}</span>@enderror
                         </div>
 
-                        <div @class(['field', 'field--always', 'has-error' => $errors->has('deceased_religion')])>
-                            <select name="deceased_religion" id="deceased_religion" required>
-                                @foreach ($religions as $value => $label)
-                                    <option value="{{ $value }}" @selected(old('deceased_religion', 'jewish') === $value)>{{ $label }}</option>
-                                @endforeach
-                            </select>
-                            <label for="deceased_religion">סמל דת</label>
-                            @error('deceased_religion')<span class="error">{{ $message }}</span>@enderror
-                        </div>
+                        <x-religion-select
+                            name="deceased_religion"
+                            :options="$religions"
+                            :selected="old('deceased_religion', 'jewish')"
+                            required />
                     </div>
 
                     <div style="margin-block-end: 20px;">

@@ -25,7 +25,7 @@ if (! function_exists('side_image_url')) {
     {
         $custom = setting('general.side_image');
 
-        return $custom ? media_url($custom) : asset('images/brand/side-dune.webp');
+        return $custom ? media_url($custom) : asset('images/brand/side-feathers.webp');
     }
 }
 

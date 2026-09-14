@@ -4,6 +4,7 @@ import './components/reveal';
 import './components/masonry';
 import './components/stacking';
 import './components/dates';
+import './components/select-icon';
 import './components/uploader';
 import './components/editor';
 import './components/feed';

@@ -51,14 +51,10 @@
             </div>
 
             <div class="form-row form-row--2">
-                <div class="field field--always">
-                    <select name="religion" id="religion">
-                        @foreach ($religions as $value => $label)
-                            <option value="{{ $value }}" @selected(old('religion', $memorial->religion->value) === $value)>{{ $label }}</option>
-                        @endforeach
-                    </select>
-                    <label for="religion">סמל דת</label>
-                </div>
+                <x-religion-select
+                    name="religion"
+                    :options="$religions"
+                    :selected="old('religion', $memorial->religion->value)" />
                 <x-field name="founder_name" label="הוקם ע״י" :value="$memorial->founder_name" />
             </div>
         </div>

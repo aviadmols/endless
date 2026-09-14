@@ -16,6 +16,12 @@
 /* The header is fixed, so anchored sections need to clear it. */
 .home [id] { scroll-margin-block-start: var(--header-h); }
 
+/* Logo and nav sit on the same grid as the sections below, not on the window edges. */
+.home .site-header__inner {
+    max-width: var(--home-container);
+    padding-inline: 20px;
+}
+
 .home-wrap {
     width: 100%;
     max-width: var(--home-container);

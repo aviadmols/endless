@@ -64,6 +64,24 @@
             </div>
 
             <div class="card">
+                <div class="card__head"><h2>צבע הכריכה</h2></div>
+                <div class="card__body">
+                    <div class="cover-list">
+                        @foreach (\App\Enums\BookCover::cases() as $case)
+                            <label class="cover-option">
+                                <input type="radio" name="cover" value="{{ $case->value }}"
+                                       @checked($cover === $case) data-book-option>
+                                <span class="cover-option__body">
+                                    <span class="cover-option__swatch" style="--swatch: {{ $case->hex() }}"></span>
+                                    <span class="cover-option__label">{{ $case->label() }}</span>
+                                </span>
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
                 <div class="card__head"><h2>כמה עותקים</h2></div>
                 <div class="card__body">
                     <div class="copies" data-copies>
@@ -97,7 +115,7 @@
                 </div>
                 <div class="card__body">
                     <div data-book-preview>
-                        @include('dashboard.partials._book_preview', ['pages' => $pages, 'size' => $size, 'openAt' => $openAt])
+                        @include('dashboard.partials._book_preview', ['pages' => $pages, 'size' => $size, 'cover' => $cover, 'openAt' => $openAt])
                     </div>
                     <p class="micro center" style="margin-block-start: 14px;">
                         ההדגמה מציגה את החלוקה לעמודים לפי הגודל שנבחר. מספר העמודים הוא הערכה ויכול להשתנות מעט בהדפסה.
@@ -132,6 +150,7 @@
             <input type="hidden" name="page" value="1" data-photos-page>
             <input type="hidden" name="content" value="{{ $content->value }}" data-mirror="content">
             <input type="hidden" name="size" value="{{ $size->value }}" data-mirror="size">
+            <input type="hidden" name="cover" value="{{ $cover->value }}" data-mirror="cover">
 
             <p class="micro" style="margin-block-end: 10px;">התמונות בעמוד הזה. הסרה מוציאה את התמונה מהספר בלבד — היא נשארת בעמוד ההנצחה.</p>
             <div class="photo-picker" data-photos-list></div>
@@ -145,6 +164,7 @@
             <input type="hidden" name="page" value="1">
             <input type="hidden" name="content" value="{{ $content->value }}" data-mirror="content">
             <input type="hidden" name="size" value="{{ $size->value }}" data-mirror="size">
+            <input type="hidden" name="cover" value="{{ $cover->value }}" data-mirror="cover">
 
             <div class="form-row" data-field-row="eyebrow">
                 <div class="field-block">

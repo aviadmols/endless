@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\BookContent;
+use App\Enums\BookCover;
 use App\Enums\BookSize;
 use App\Models\Book;
 use App\Models\Memorial;
@@ -74,6 +75,7 @@ class BookTest extends TestCase
             ->put(route('dashboard.book.update'), [
                 'content' => BookContent::Memories->value,
                 'size' => BookSize::Square->value,
+                'cover' => BookCover::Sand->value,
                 'copies' => 12,
             ])
             ->assertRedirect()
@@ -83,6 +85,7 @@ class BookTest extends TestCase
 
         $this->assertSame(BookContent::Memories, $book->content);
         $this->assertSame(BookSize::Square, $book->size);
+        $this->assertSame(BookCover::Sand, $book->cover);
         $this->assertSame(12, $book->copies);
         $this->assertGreaterThan(0, $book->page_count);
     }
@@ -91,7 +94,12 @@ class BookTest extends TestCase
     {
         Memory::factory()->for($this->memorial)->create();
 
-        $payload = ['content' => BookContent::Both->value, 'size' => BookSize::Portrait->value, 'copies' => 3];
+        $payload = [
+            'content' => BookContent::Both->value,
+            'size' => BookSize::Portrait->value,
+            'cover' => BookCover::White->value,
+            'copies' => 3,
+        ];
         $this->actingAs($this->owner)->put(route('dashboard.book.update'), $payload);
         $this->actingAs($this->owner)->put(route('dashboard.book.update'), [...$payload, 'copies' => 7]);
 
@@ -101,7 +109,11 @@ class BookTest extends TestCase
 
     public function test_the_number_of_copies_is_validated(): void
     {
-        $payload = ['content' => BookContent::Both->value, 'size' => BookSize::Portrait->value];
+        $payload = [
+            'content' => BookContent::Both->value,
+            'size' => BookSize::Portrait->value,
+            'cover' => BookCover::White->value,
+        ];
 
         $this->actingAs($this->owner)
             ->from(route('dashboard.book'))
@@ -335,6 +347,42 @@ class BookTest extends TestCase
         $this->actingAs($this->owner)->delete(route('dashboard.book.pages.reset'))->assertRedirect();
 
         $this->assertSame([], Book::first()->excluded());
+    }
+
+    public function test_the_cover_colour_is_saved_and_defaults_to_white(): void
+    {
+        Memory::factory()->for($this->memorial)->create();
+
+        $this->assertSame(BookCover::White, (new Book)->cover);
+
+        $this->actingAs($this->owner)->put(route('dashboard.book.update'), [
+            'content' => BookContent::Both->value,
+            'size' => BookSize::Portrait->value,
+            'cover' => BookCover::Ink->value,
+            'copies' => 1,
+        ])->assertSessionHasNoErrors();
+
+        $this->assertSame(BookCover::Ink, Book::first()->cover);
+    }
+
+    public function test_a_dark_cover_gets_light_ink_and_a_light_one_dark(): void
+    {
+        $this->assertSame('#FFFFFF', BookCover::Ink->ink());
+        $this->assertSame('#1D1D20', BookCover::White->ink());
+        $this->assertSame('#1D1D20', BookCover::Sand->ink());
+    }
+
+    public function test_an_unknown_cover_colour_is_rejected(): void
+    {
+        $this->actingAs($this->owner)
+            ->from(route('dashboard.book'))
+            ->put(route('dashboard.book.update'), [
+                'content' => BookContent::Both->value,
+                'size' => BookSize::Portrait->value,
+                'cover' => 'neon',
+                'copies' => 1,
+            ])
+            ->assertSessionHasErrors('cover');
     }
 
     public function test_the_builder_is_private(): void

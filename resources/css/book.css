@@ -230,19 +230,21 @@
    the content in a face inside the page, the spread puts the page's own classes
    on the face itself. */
 .book__page--cover > .book__face,
-.spread__face.book__page--cover { padding: 0; justify-content: flex-end; gap: 0; background: var(--ink); }
+.spread__face.book__page--cover {
+    padding: 0;
+    justify-content: flex-end;
+    gap: 0;
+    background: var(--cover-bg, #ffffff);
+    color: var(--cover-ink, var(--ink));
+}
 .book__page--cover > .book__face::before { display: none; }
 .spread__face.book__page--cover::after { display: none; }
-.book__cover-media { position: absolute; inset: 0; background: radial-gradient(120% 100% at 50% 30%, #2c2c2f 0%, #121214 100%); }
+/* The photo sits above the title block rather than behind it, so the cover reads
+   the same whatever colour it is printed on. */
+.book__cover-media { position: relative; flex: 1 1 auto; min-height: 0; }
 .book__cover-media img { width: 100%; height: 100%; object-fit: contain; }
-.book__cover-media::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to bottom, rgb(0 0 0 / 10%) 40%, rgb(0 0 0 / 72%) 100%);
-}
-.book__cover-text { position: relative; padding: 8%; color: var(--paper); display: grid; gap: calc(1.2cqw * var(--type-scale, 1)); }
-.book__page--cover .book__eyebrow { color: rgb(255 255 255 / 78%); }
+.book__cover-text { position: relative; flex: 0 0 auto; padding: 8%; display: grid; gap: calc(1.2cqw * var(--type-scale, 1)); }
+.book__page--cover .book__eyebrow { color: inherit; opacity: 0.66; }
 .book__name { font-size: calc(6cqw * var(--type-scale, 1)); font-weight: var(--fw-light); line-height: 1.1; }
 .book__dates { font-size: calc(2.6cqw * var(--type-scale, 1)); letter-spacing: calc(0.4cqw * var(--type-scale, 1)); }
 .book__page--cover .book__folio { display: none; }
@@ -361,18 +363,18 @@ body.spread-open { overflow: hidden; }
     filter: drop-shadow(0 26px 50px rgb(0 0 0 / 55%));
 }
 
-/* Every leaf lives on the left half and pivots on the spine at the centre. */
+/* Every leaf lives on the left half and pivots on the spine at the centre. The
+   sides are physical: a Hebrew book turns its left page rightward, full stop. */
 .spread__leaf {
     position: absolute;
     inset-block: 0;
-    inset-inline-start: 0;
+    left: 0;
     width: 50%;
     transform-style: preserve-3d;
     transform-origin: 100% 50%;
     transition: transform 0.9s cubic-bezier(0.52, 0.05, 0.32, 1);
 }
-[dir='rtl'] .spread__leaf { inset-inline-start: auto; left: 0; transform-origin: 100% 50%; }
-.spread__leaf.is-turned { transform: rotateY(-180deg); }
+.spread__leaf.is-turned { transform: rotateY(180deg); }
 .spread.is-seeking .spread__leaf { transition: none; }
 @media (prefers-reduced-motion: reduce) { .spread__leaf { transition: none; } }
 
@@ -424,3 +426,32 @@ body.spread-open { overflow: hidden; }
     .spread__frame { width: min(100%, calc((100dvh - 100px) * var(--book-ratio, 0.75) * 2)); }
     .spread__counter { min-width: 0; font-size: var(--fs-micro); }
 }
+
+/* ------------------------------------------------------------ cover colour */
+
+.cover-list { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+
+.cover-option { cursor: pointer; }
+.cover-option input { position: absolute; opacity: 0; width: 0; height: 0; }
+.cover-option__body {
+    display: grid;
+    justify-items: center;
+    gap: 7px;
+    padding: 12px 4px;
+    border: 1px solid var(--rule);
+    border-radius: var(--r-input);
+    text-align: center;
+    transition: border-color var(--t), background var(--t);
+}
+.cover-option:hover .cover-option__body { border-color: var(--ink-muted); }
+.cover-option:has(input:checked) .cover-option__body { border-color: var(--ink); background: var(--soft); }
+.cover-option:has(input:focus-visible) .cover-option__body { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+.cover-option__swatch {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--swatch);
+    box-shadow: inset 0 0 0 1px rgb(29 29 32 / 14%);
+}
+.cover-option__label { font-size: var(--fs-micro); }

@@ -157,6 +157,7 @@ const boot = () => {
         const params = new URLSearchParams({
             content: form.querySelector('input[name="content"]:checked')?.value ?? '',
             size: form.querySelector('input[name="size"]:checked')?.value ?? '',
+            cover: form.querySelector('input[name="cover"]:checked')?.value ?? '',
         });
 
         // Only the newest request may paint.

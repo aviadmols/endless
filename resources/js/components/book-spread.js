@@ -8,14 +8,13 @@
 
 const SPINE = 'book-spread-spine';
 
-const build = (pages, ratio, typeScale) => {
+const build = (pages, vars) => {
     const overlay = document.createElement('div');
     overlay.className = 'spread';
     overlay.setAttribute('role', 'dialog');
     overlay.setAttribute('aria-modal', 'true');
     overlay.setAttribute('aria-label', 'תצוגה מלאה של הספר');
-    overlay.style.setProperty('--book-ratio', ratio);
-    overlay.style.setProperty('--type-scale', typeScale);
+    Object.entries(vars).forEach(([name, value]) => overlay.style.setProperty(name, value));
 
     const leaves = [];
     for (let i = 0; i < pages.length; i += 2) {
@@ -65,11 +64,13 @@ const open = (book) => {
     if (pages.length === 0) return;
 
     const styles = getComputedStyle(book);
-    const { overlay, leaves, total } = build(
-        pages,
-        styles.getPropertyValue('--book-ratio').trim() || '0.75',
-        styles.getPropertyValue('--type-scale').trim() || '1',
-    );
+    const inherit = (name, fallback) => styles.getPropertyValue(name).trim() || fallback;
+    const { overlay, leaves, total } = build(pages, {
+        '--book-ratio': inherit('--book-ratio', '0.75'),
+        '--type-scale': inherit('--type-scale', '1'),
+        '--cover-bg': inherit('--cover-bg', '#ffffff'),
+        '--cover-ink': inherit('--cover-ink', '#1D1D20'),
+    });
 
     document.body.append(overlay);
     document.body.classList.add('spread-open');

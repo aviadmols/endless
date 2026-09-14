@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Enums\BookContent;
+use App\Enums\BookCover;
 use App\Enums\BookSize;
 use App\Models\Book;
 use Illuminate\Foundation\Http\FormRequest;
@@ -20,6 +21,7 @@ class BookRequest extends FormRequest
         return [
             'content' => ['required', Rule::enum(BookContent::class)],
             'size' => ['required', Rule::enum(BookSize::class)],
+            'cover' => ['required', Rule::enum(BookCover::class)],
             'copies' => ['required', 'integer', 'min:1', 'max:'.Book::MAX_COPIES],
         ];
     }
@@ -29,6 +31,7 @@ class BookRequest extends FormRequest
         return [
             'content' => 'תוכן הספר',
             'size' => 'גודל',
+            'cover' => 'צבע הכריכה',
             'copies' => 'מספר עותקים',
         ];
     }

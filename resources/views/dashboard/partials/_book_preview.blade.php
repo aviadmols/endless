@@ -2,7 +2,7 @@
      Each page is a leaf that rotates around the spine, so it needs a front face and a
      back face; `overflow` lives on the face, never on the leaf, or the 3-D flattens. --}}
 <div class="book" data-book
-     style="--book-ratio: {{ $size->ratio() }}; --type-scale: {{ $size->typeScale() }}"
+     style="--book-ratio: {{ $size->ratio() }}; --type-scale: {{ $size->typeScale() }}; --cover-bg: {{ $cover->hex() }}; --cover-ink: {{ $cover->ink() }}"
      data-open-at="{{ $openAt ?? 1 }}">
     {{-- The frame clips; the stage holds the perspective. Clipping on the stage
          itself would flatten the 3-D and there would be no turn to see. --}}

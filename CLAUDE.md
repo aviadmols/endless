@@ -5,7 +5,7 @@ Laravel 13 app for memorial pages. Hebrew/RTL throughout. See `README.md` for se
 ## Commands
 
 ```bash
-php artisan test                 # 112 tests, keep them green
+php artisan test                 # 115 tests, keep them green
 php artisan migrate:fresh --seed # rebuild the demo memorial at /m/kochav
 npm run dev                      # Vite watch
 npm run build                    # required before checking pages in a browser
@@ -65,7 +65,9 @@ its own `resources/css/home.css`, reference photography in `public/images/home/`
 - **The full-screen view is bound like a real book.** A sheet carries two pages, so `book-spread.js`
   groups pages into leaves — leaf n is page 2n-1 front, 2n back — and every leaf pivots on the centre
   spine from the left half onto the right. That is what makes the spread read right page first, and
-  what lets you see the back of the sheet you just turned. Page-type layout rules must name both
+  what lets you see the back of the sheet you just turned. A leaf must turn with a **positive**
+  `rotateY` so it lifts toward the viewer; negative dips it behind the book and reads as backwards.
+  Page-type layout rules must name both
   `.book__page--x > .book__face` and `.spread__face.book__page--x`; the two renderers nest differently.
 - **Per-page edits are keyed overrides** (`books.overrides`, keyed by the page key). A field
   edited back to the composed text is dropped rather than frozen, so the page keeps following the

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Enums\BookContent;
+use App\Enums\BookCover;
 use App\Enums\BookSize;
 use App\Enums\MemoryStatus;
 use App\Http\Controllers\Controller;
@@ -34,12 +35,14 @@ class BookController extends Controller
         // The form can preview options the owner has not saved yet.
         $content = $this->contentFrom($request, $book);
         $size = $this->sizeFrom($request, $book);
+        $cover = $this->coverFrom($request, $book);
 
         return view('dashboard.book', [
             'memorial' => $memorial,
             'book' => $book,
             'content' => $content,
             'size' => $size,
+            'cover' => $cover,
             'pages' => $this->composer->compose($memorial, $content, $size, $book->overrides ?? [], $book->excluded()),
             'counts' => $this->counts($memorial),
             'openAt' => max(1, (int) $request->query('page', 1)),
@@ -60,6 +63,7 @@ class BookController extends Controller
 
         return view('dashboard.partials._book_preview', [
             'size' => $size,
+            'cover' => $this->coverFrom($request, $book),
             'pages' => $this->composer->compose($memorial, $this->contentFrom($request, $book), $size, $book->overrides ?? [], $book->excluded()),
             'openAt' => max(1, (int) $request->query('page', 1)),
         ]);
@@ -72,11 +76,13 @@ class BookController extends Controller
 
         $content = BookContent::from($request->string('content')->toString());
         $size = BookSize::from($request->string('size')->toString());
+        $cover = BookCover::from($request->string('cover')->toString());
         $book = $this->bookFor($memorial);
 
         $book->fill([
             'content' => $content,
             'size' => $size,
+            'cover' => $cover,
             'copies' => $request->integer('copies'),
             'page_count' => count($this->composer->compose($memorial, $content, $size, $book->overrides ?? [], $book->excluded())),
         ])->save();
@@ -84,7 +90,7 @@ class BookController extends Controller
         ActivityLog::record('book.saved', $memorial);
 
         return redirect()
-            ->route('dashboard.book', ['content' => $content->value, 'size' => $size->value])
+            ->route('dashboard.book', ['content' => $content->value, 'size' => $size->value, 'cover' => $cover->value])
             ->with('status', "הספר נשמר — {$book->page_count} עמודים, {$book->copies} עותקים. נעדכן אתכם כשההזמנה תיפתח.");
     }
 
@@ -201,6 +207,11 @@ class BookController extends Controller
     private function sizeFrom(Request $request, Book $book): BookSize
     {
         return BookSize::tryFrom((string) $request->input('size')) ?? $book->size;
+    }
+
+    private function coverFrom(Request $request, Book $book): BookCover
+    {
+        return BookCover::tryFrom((string) $request->input('cover')) ?? $book->cover;
     }
 
     /** @return array{memories:int,photos:int} */

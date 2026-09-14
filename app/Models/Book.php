@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\BookContent;
+use App\Enums\BookCover;
 use App\Enums\BookSize;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -21,11 +22,12 @@ class Book extends Model
     /** Text fields of a page the owner may rewrite. */
     public const EDITABLE_FIELDS = ['eyebrow', 'title', 'body', 'caption'];
 
-    protected $fillable = ['memorial_id', 'content', 'size', 'overrides', 'excluded_images', 'copies', 'page_count'];
+    protected $fillable = ['memorial_id', 'content', 'size', 'cover', 'overrides', 'excluded_images', 'copies', 'page_count'];
 
     protected $attributes = [
         'content' => 'both',
         'size' => 'portrait_21_28',
+        'cover' => 'white',
         'copies' => 1,
         'page_count' => 0,
     ];
@@ -35,6 +37,7 @@ class Book extends Model
         return [
             'content' => BookContent::class,
             'size' => BookSize::class,
+            'cover' => BookCover::class,
             'overrides' => 'array',
             'excluded_images' => 'array',
             'copies' => 'integer',

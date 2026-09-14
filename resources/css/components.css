@@ -46,8 +46,6 @@
     display: grid; place-items: center;
     background: none; border: 0; cursor: pointer; padding: 0;
 }
-/* Above the breakpoint `.site-nav` carries the same links, so the burger stands down. */
-@media (min-width: 768px) { .burger { display: none; } }
 .burger span { display: block; width: 22px; height: 1.5px; background: var(--ink); position: relative; transition: transform var(--t), opacity var(--t); }
 .burger span::before, .burger span::after { content: ''; position: absolute; inset-inline-start: 0; width: 22px; height: 1.5px; background: var(--ink); transition: transform var(--t), opacity var(--t); }
 .burger span::before { inset-block-start: -7px; }
@@ -56,9 +54,15 @@
 .burger[aria-expanded='true'] span::before { transform: translateY(7px) rotate(45deg); }
 .burger[aria-expanded='true'] span::after { transform: translateY(-7px) rotate(-45deg); }
 
+/* A drawer pinned to the physical left edge — it slides in from off-screen, so it
+   stays laid out while closed and is held out of reach with visibility + `inert`. */
 .mobile-menu {
     position: fixed;
-    inset: var(--header-h) 0 0 0;
+    inset-block: var(--header-h) 0;
+    left: 0;
+    right: auto;
+    width: 100%;
+    max-width: 500px;
     background: var(--paper-warm);
     z-index: 55;
     padding: 40px var(--gutter);
@@ -66,8 +70,14 @@
     flex-direction: column;
     gap: 6px;
     overflow-y: auto;
+    visibility: hidden;
+    transform: translateX(-100%);
+    transition: transform var(--t), visibility var(--t);
 }
+.mobile-menu.is-open { visibility: visible; transform: none; }
+/* Without JavaScript the attribute is never cleared, so the drawer stays out. */
 .mobile-menu[hidden] { display: none; }
+@media (prefers-reduced-motion: reduce) { .mobile-menu { transition: none; } }
 .mobile-menu a { font-size: 24px; font-weight: var(--fw-light); padding-block: 12px; border-block-end: 1px solid var(--rule-soft); }
 .mobile-menu .btn { margin-block-start: 24px; }
 body.menu-open { overflow: hidden; }

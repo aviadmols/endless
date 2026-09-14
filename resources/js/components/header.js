@@ -13,10 +13,14 @@ const menu = document.querySelector('[data-mobile-menu]');
 if (burger && menu) {
     const setOpen = (open) => {
         burger.setAttribute('aria-expanded', open ? 'true' : 'false');
-        menu.hidden = !open;
+        menu.classList.toggle('is-open', open);
+        // `inert` keeps the off-screen drawer out of the tab order and the a11y tree.
+        menu.inert = !open;
         document.body.classList.toggle('menu-open', open);
     };
 
+    // The drawer has to stay in the layout to slide; CSS holds it off-screen instead.
+    menu.hidden = false;
     setOpen(false);
     burger.addEventListener('click', () => setOpen(burger.getAttribute('aria-expanded') !== 'true'));
     menu.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => setOpen(false)));

@@ -15,7 +15,8 @@
                      data-eyebrow="{{ $page->eyebrow }}"
                      data-title="{{ $page->title }}"
                      data-body="{{ $page->body }}"
-                     data-caption="{{ $page->caption }}">
+                     data-caption="{{ $page->caption }}"
+                     data-photos="{{ json_encode(collect($page->images)->map(fn ($i) => ['key' => $i['key'] ?? '', 'url' => $i['url']])->filter(fn ($i) => $i['key'] !== '')->values(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) }}">
                 <div class="book__face">
                     @switch($page->type)
                         @case('cover')
@@ -86,6 +87,10 @@
         </p>
         <button type="button" class="btn btn--ghost btn--sm" data-book-next aria-label="העמוד הבא">←</button>
     </div>
+
+    <button type="button" class="btn btn--ghost btn--sm btn--block" data-book-fullscreen>
+        תצוגה מלאה — ספר פתוח
+    </button>
 
     <input type="range" class="book__scrub" min="1" max="{{ max(1, count($pages)) }}" value="1"
            data-book-scrub aria-label="דפדוף בספר">

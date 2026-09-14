@@ -21,7 +21,7 @@ class Book extends Model
     /** Text fields of a page the owner may rewrite. */
     public const EDITABLE_FIELDS = ['eyebrow', 'title', 'body', 'caption'];
 
-    protected $fillable = ['memorial_id', 'content', 'size', 'overrides', 'copies', 'page_count'];
+    protected $fillable = ['memorial_id', 'content', 'size', 'overrides', 'excluded_images', 'copies', 'page_count'];
 
     protected $attributes = [
         'content' => 'both',
@@ -36,9 +36,25 @@ class Book extends Model
             'content' => BookContent::class,
             'size' => BookSize::class,
             'overrides' => 'array',
+            'excluded_images' => 'array',
             'copies' => 'integer',
             'page_count' => 'integer',
         ];
+    }
+
+    /** Photo keys ("gallery:12") the owner has taken out of the book. */
+    public function excluded(): array
+    {
+        return array_values($this->excluded_images ?? []);
+    }
+
+    /** @param  array<int,string>  $remove  keys to take out; anything else offered is put back */
+    public function setPhotoExclusions(array $offered, array $remove): void
+    {
+        $kept = array_diff($this->excluded(), $offered);
+
+        $this->excluded_images = array_values(array_unique([...$kept, ...array_intersect($offered, $remove)]));
+        $this->save();
     }
 
     /**

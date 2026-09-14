@@ -1,3 +1,5 @@
+import { bindFullscreen } from './book-spread';
+
 // The book builder in the personal area.
 //
 // The preview is a stack of leaves: every page before the current one is turned
@@ -69,21 +71,58 @@ const bindCopies = (form) => {
     box.querySelector('[data-copies-down]')?.addEventListener('click', () => step(-1));
 };
 
-/** Points the edit form at whichever page is showing. */
+/** Points the edit forms at whichever page is showing. */
 const bindEditor = (editor) => {
     if (!editor) return () => {};
 
     const rows = Array.from(editor.querySelectorAll('[data-field-row]'));
     const empty = editor.querySelector('[data-editor-empty]');
     const body = editor.querySelector('[data-editor-body]');
+    const photosForm = editor.querySelector('[data-editor-photos]');
+    const photosList = editor.querySelector('[data-photos-list]');
+    const photosPage = editor.querySelector('[data-photos-page]');
     const keyInput = editor.querySelector('input[name="key"]');
     const pageInput = editor.querySelector('input[name="page"]');
 
+    const renderPhotos = (photos, index) => {
+        if (!photosForm || !photosList) return false;
+
+        photosList.replaceChildren();
+        photos.forEach(({ key, url }) => {
+            const label = document.createElement('label');
+            label.className = 'photo-pick';
+            label.innerHTML = `
+                <input type="hidden" name="offered[]">
+                <input type="checkbox" name="remove[]">
+                <img alt="" loading="lazy">
+                <span class="photo-pick__mark">להסיר</span>
+            `;
+            label.querySelector('input[type=hidden]').value = key;
+            label.querySelector('input[type=checkbox]').value = key;
+            label.querySelector('img').src = url;
+            photosList.append(label);
+        });
+
+        photosForm.hidden = photos.length === 0;
+        if (photosPage) photosPage.value = String(index + 1);
+
+        return photos.length > 0;
+    };
+
     return (page, index) => {
         const fields = (page?.dataset.fields || '').split(',').filter(Boolean);
+
+        let photos = [];
+        try {
+            photos = JSON.parse(page?.dataset.photos || '[]');
+        } catch {
+            photos = [];
+        }
+
+        const hasPhotos = renderPhotos(photos, index);
         const editable = fields.length > 0;
 
-        if (empty) empty.hidden = editable;
+        if (empty) empty.hidden = editable || hasPhotos;
         if (body) body.hidden = !editable;
         if (keyInput) keyInput.value = page?.dataset.key ?? '';
         if (pageInput) pageInput.value = String(index + 1);
@@ -109,6 +148,7 @@ const boot = () => {
     const target = form.querySelector('[data-book-preview]');
     const syncEditor = bindEditor(document.querySelector('[data-book-editor]'));
     bindFlipThrough(target, syncEditor);
+    bindFullscreen(target);
     bindCopies(form);
 
     let pending = null;
@@ -135,6 +175,7 @@ const boot = () => {
 
             target.innerHTML = await response.text();
             bindFlipThrough(target, syncEditor);
+            bindFullscreen(target);
         } catch (error) {
             if (error.name !== 'AbortError') {
                 // Leave the last good preview on screen rather than blanking it.

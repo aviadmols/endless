@@ -5,7 +5,7 @@ Laravel 13 app for memorial pages. Hebrew/RTL throughout. See `README.md` for se
 ## Commands
 
 ```bash
-php artisan test                 # 108 tests, keep them green
+php artisan test                 # 112 tests, keep them green
 php artisan migrate:fresh --seed # rebuild the demo memorial at /m/kochav
 npm run dev                      # Vite watch
 npm run build                    # required before checking pages in a browser
@@ -50,7 +50,7 @@ its own `resources/css/home.css`, reference photography in `public/images/home/`
 
 ## The book builder
 
-`/dashboard/book` composes a memorial into printed pages (`BookComposer`). Four things to know:
+`/dashboard/book` composes a memorial into printed pages (`BookComposer`). Five things to know:
 
 - **The page budget is counted in rendered lines, not characters.** The body uses `white-space: pre-line`,
   so a one-word line costs a whole line. `BookSize::linesPerPage()` / `charsPerLine()` were measured
@@ -62,9 +62,15 @@ its own `resources/css/home.css`, reference photography in `public/images/home/`
   `.is-turned`, so forward and back are the same operation and CSS animates it. `overflow` and
   `container-type` flatten 3-D, so they live on `.book__face`, never on the leaf that rotates, and
   the clip sits on `.book__frame` outside the perspective.
+- **The full-screen view is bound like a real book.** A sheet carries two pages, so `book-spread.js`
+  groups pages into leaves — leaf n is page 2n-1 front, 2n back — and every leaf pivots on the centre
+  spine from the left half onto the right. That is what makes the spread read right page first, and
+  what lets you see the back of the sheet you just turned. Page-type layout rules must name both
+  `.book__page--x > .book__face` and `.spread__face.book__page--x`; the two renderers nest differently.
 - **Per-page edits are keyed overrides** (`books.overrides`, keyed by the page key). A field
   edited back to the composed text is dropped rather than frozen, so the page keeps following the
-  memorial. Keys that no longer exist after a resize are ignored.
+  memorial. Keys that no longer exist after a resize are ignored. Photos taken out of the book live
+  separately in `books.excluded_images` as `gallery:12` / `memory:45`, since they change the pagination.
 
 Ordering is deliberately closed — `Book` stores the draft so it can become an order when payments land.
 

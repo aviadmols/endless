@@ -11,6 +11,8 @@ use App\Http\Requests\BookRequest;
 use App\Models\ActivityLog;
 use App\Models\Book;
 use App\Models\Memorial;
+use App\Models\MemorialImage;
+use App\Models\MemoryImage;
 use App\Services\Book\BookComposer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -38,9 +40,10 @@ class BookController extends Controller
             'book' => $book,
             'content' => $content,
             'size' => $size,
-            'pages' => $this->composer->compose($memorial, $content, $size, $book->overrides ?? []),
+            'pages' => $this->composer->compose($memorial, $content, $size, $book->overrides ?? [], $book->excluded()),
             'counts' => $this->counts($memorial),
             'openAt' => max(1, (int) $request->query('page', 1)),
+            'removed' => $this->removedPhotos($memorial, $book),
         ]);
     }
 
@@ -57,7 +60,7 @@ class BookController extends Controller
 
         return view('dashboard.partials._book_preview', [
             'size' => $size,
-            'pages' => $this->composer->compose($memorial, $this->contentFrom($request, $book), $size, $book->overrides ?? []),
+            'pages' => $this->composer->compose($memorial, $this->contentFrom($request, $book), $size, $book->overrides ?? [], $book->excluded()),
             'openAt' => max(1, (int) $request->query('page', 1)),
         ]);
     }
@@ -75,7 +78,7 @@ class BookController extends Controller
             'content' => $content,
             'size' => $size,
             'copies' => $request->integer('copies'),
-            'page_count' => count($this->composer->compose($memorial, $content, $size, $book->overrides ?? [])),
+            'page_count' => count($this->composer->compose($memorial, $content, $size, $book->overrides ?? [], $book->excluded())),
         ])->save();
 
         ActivityLog::record('book.saved', $memorial);
@@ -97,7 +100,7 @@ class BookController extends Controller
         $key = $request->string('key')->toString();
 
         // Compose without the stored edits so we can tell an edit from the original.
-        $original = collect($this->composer->compose($memorial, $content, $size))
+        $original = collect($this->composer->compose($memorial, $content, $size, [], $book->excluded()))
             ->firstWhere('key', $key) ?? abort(404);
 
         $book->overridePage($key, $request->fields(), [
@@ -116,15 +119,73 @@ class BookController extends Controller
             ->with('status', 'העמוד עודכן.');
     }
 
+    /** Take photos out of the book, or put them back. */
+    public function updatePhotos(Request $request): RedirectResponse
+    {
+        $memorial = $request->user()->primaryMemorial() ?? abort(404);
+        $this->authorize('update', $memorial);
+
+        $validated = $request->validate([
+            'offered' => ['required', 'array', 'max:200'],
+            'offered.*' => ['string', 'regex:/^(gallery|memory):\d+$/'],
+            'remove' => ['nullable', 'array'],
+            'remove.*' => ['string', 'regex:/^(gallery|memory):\d+$/'],
+            'page' => ['nullable', 'integer', 'min:1'],
+            'content' => ['nullable', 'string'],
+            'size' => ['nullable', 'string'],
+        ]);
+
+        $book = $this->bookFor($memorial);
+        $book->setPhotoExclusions($validated['offered'], $validated['remove'] ?? []);
+
+        return redirect()
+            ->route('dashboard.book', [
+                'content' => $this->contentFrom($request, $book)->value,
+                'size' => $this->sizeFrom($request, $book)->value,
+                'page' => $validated['page'] ?? 1,
+            ])
+            ->with('status', 'התמונות בעמוד עודכנו.');
+    }
+
     /** Undo every edit and let the book follow the memorial again. */
     public function resetPages(Request $request): RedirectResponse
     {
         $memorial = $request->user()->primaryMemorial() ?? abort(404);
         $this->authorize('update', $memorial);
 
-        $this->bookFor($memorial)->forceFill(['overrides' => null])->save();
+        $this->bookFor($memorial)->forceFill(['overrides' => null, 'excluded_images' => null])->save();
 
         return redirect()->route('dashboard.book')->with('status', 'כל העריכות בוטלו והספר חזר לתוכן של העמוד.');
+    }
+
+    /**
+     * The photos taken out of the book, so they can be put back.
+     *
+     * @return array<int,array{key:string,url:string}>
+     */
+    private function removedPhotos(Memorial $memorial, Book $book): array
+    {
+        $keys = $book->excluded();
+        if ($keys === []) {
+            return [];
+        }
+
+        $ids = fn (string $kind) => collect($keys)
+            ->filter(fn ($k) => str_starts_with($k, "{$kind}:"))
+            ->map(fn ($k) => (int) substr($k, strlen($kind) + 1))
+            ->all();
+
+        $photos = MemorialImage::whereIn('id', $ids('gallery'))
+            ->where('memorial_id', $memorial->id)
+            ->get()
+            ->map(fn ($i) => ['key' => "gallery:{$i->id}", 'url' => $i->thumb_url]);
+
+        $fromMemories = MemoryImage::whereIn('memory_images.id', $ids('memory'))
+            ->whereHas('memory', fn ($q) => $q->where('memorial_id', $memorial->id))
+            ->get()
+            ->map(fn ($i) => ['key' => "memory:{$i->id}", 'url' => $i->thumb_url]);
+
+        return $photos->concat($fromMemories)->values()->all();
     }
 
     private function bookFor(Memorial $memorial): Book

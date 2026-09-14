@@ -61,6 +61,41 @@
    `[hidden]` — without this the rows for fields the page does not have stay up. */
 .form-row[hidden] { display: none; }
 
+.photo-picker { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; }
+
+.photo-pick {
+    position: relative;
+    display: block;
+    aspect-ratio: 1;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--rule);
+    cursor: pointer;
+    transition: border-color var(--t), opacity var(--t);
+}
+.photo-pick img { width: 100%; height: 100%; object-fit: cover; transition: opacity var(--t); }
+.photo-pick input { position: absolute; opacity: 0; width: 0; height: 0; }
+
+.photo-pick__mark {
+    position: absolute;
+    inset-block-end: 0;
+    inset-inline: 0;
+    padding: 5px 8px;
+    background: rgb(29 29 32 / 72%);
+    color: var(--paper);
+    font-size: var(--fs-micro);
+    text-align: center;
+    opacity: 0;
+    transition: opacity var(--t);
+}
+.photo-pick:hover .photo-pick__mark { opacity: 1; }
+
+/* Checked means "out of the book", so the tile reads as struck through. */
+.photo-pick:has(input:checked) { border-color: var(--ink); }
+.photo-pick:has(input:checked) img { opacity: 0.32; }
+.photo-pick:has(input:checked) .photo-pick__mark { opacity: 1; background: var(--ink); }
+.photo-pick:has(input:focus-visible) { outline: 2px solid var(--ink); outline-offset: 2px; }
+
 /* ------------------------------------------------------------------ copies */
 
 .copies { display: inline-flex; align-items: center; border: 1px solid var(--rule); border-radius: var(--r-input); overflow: hidden; }
@@ -191,10 +226,14 @@
 .book__body { font-size: calc(2.7cqw * var(--type-scale, 1)); font-weight: var(--fw-light); line-height: 1.65; white-space: pre-line; overflow: hidden; }
 .book__byline { margin-block-start: auto; font-size: calc(2.2cqw * var(--type-scale, 1)); letter-spacing: calc(0.1cqw * var(--type-scale, 1)); color: var(--ink-soft); }
 
-/* cover */
-.book__page--cover > .book__face { padding: 0; justify-content: flex-end; gap: 0; background: var(--ink); }
+/* cover — the selectors have to reach both renderers: the inline preview wraps
+   the content in a face inside the page, the spread puts the page's own classes
+   on the face itself. */
+.book__page--cover > .book__face,
+.spread__face.book__page--cover { padding: 0; justify-content: flex-end; gap: 0; background: var(--ink); }
 .book__page--cover > .book__face::before { display: none; }
-.book__cover-media { position: absolute; inset: 0; }
+.spread__face.book__page--cover::after { display: none; }
+.book__cover-media { position: absolute; inset: 0; background: radial-gradient(120% 100% at 50% 30%, #2c2c2f 0%, #121214 100%); }
 .book__cover-media img { width: 100%; height: 100%; object-fit: contain; }
 .book__cover-media::after {
     content: '';
@@ -209,7 +248,8 @@
 .book__page--cover .book__folio { display: none; }
 
 /* chapter opener */
-.book__page--divider > .book__face { justify-content: center; align-items: center; text-align: center; }
+.book__page--divider > .book__face,
+.spread__face.book__page--divider { justify-content: center; align-items: center; text-align: center; }
 .book__divider { display: grid; gap: calc(1.6cqw * var(--type-scale, 1)); }
 .book__divider h3 { font-size: calc(5.5cqw * var(--type-scale, 1)); font-weight: var(--fw-light); }
 
@@ -224,21 +264,30 @@
     min-height: 0;
     overflow: hidden;
 }
-/* Photos are shown whole — a memorial photo is not ours to crop — so the tile
-   letterboxes onto a soft ground instead. */
-.book__grid img {
+/* Photos are shown whole — a memorial photo is not ours to crop — so each one is
+   mounted on a warm ground with a hairline and a little lift, the way a print is
+   mounted on an album page, instead of letterboxing onto a flat grey block. */
+.book__grid img,
+.spread__face .book__grid img {
     width: 100%;
     height: 100%;
     min-width: 0;
     min-height: 0;
     object-fit: contain;
-    background: var(--soft);
-    border-radius: 2px;
+    background:
+        radial-gradient(115% 115% at 50% 0%, #fffefc 0%, #f4f1ea 62%, #ebe6dc 100%);
+    box-shadow:
+        inset 0 0 0 1px rgb(29 29 32 / 7%),
+        0 1px 2px rgb(29 29 32 / 7%),
+        0 6px 14px -8px rgb(29 29 32 / 22%);
+    border-radius: 3px;
+    padding: 2.5%;
 }
 .book__page--memory .book__grid { flex: 0 0 40%; }
 
 /* closing */
-.book__page--closing > .book__face { justify-content: center; align-items: center; text-align: center; }
+.book__page--closing > .book__face,
+.spread__face.book__page--closing { justify-content: center; align-items: center; text-align: center; }
 .book__closing { display: grid; gap: calc(3cqw * var(--type-scale, 1)); }
 .book__closing blockquote { font-size: calc(4.2cqw * var(--type-scale, 1)); font-weight: var(--fw-extralight); line-height: 1.4; }
 .book__page--closing .book__byline { margin-block-start: 0; }
@@ -255,4 +304,123 @@
     .size-list { grid-template-columns: repeat(3, 1fr); gap: 6px; }
     .size-option__body { padding: 12px 6px; }
     .book__name { font-size: 22px; }
+}
+
+/* ------------------------------------------------- full-screen spread view */
+
+body.spread-open { overflow: hidden; }
+
+.spread {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: grid;
+    grid-template-rows: 1fr auto;
+    gap: 18px;
+    padding: 54px 20px 24px;
+    background: #14140f;
+    background-image: radial-gradient(120% 90% at 50% 0%, #2a2a24 0%, #121210 70%);
+}
+
+.spread__close {
+    position: absolute;
+    inset-block-start: 14px;
+    inset-inline-end: 18px;
+    width: 40px;
+    height: 40px;
+    border: 1px solid rgb(255 255 255 / 25%);
+    border-radius: 50%;
+    background: transparent;
+    color: rgb(255 255 255 / 80%);
+    font-size: 16px;
+    cursor: pointer;
+    transition: background var(--t), border-color var(--t);
+}
+.spread__close:hover { background: rgb(255 255 255 / 10%); border-color: rgb(255 255 255 / 55%); }
+
+/* Two pages wide, spine down the middle. The frame is sized to fit whichever of
+   width or height runs out first, so the whole spread is always on screen. */
+/* With nothing turned yet the book lies wholly on one side of the spine, so the
+   frame shifts to bring that half to the middle of the screen. */
+.spread.is-closed .spread__frame { transform: translateX(25%); }
+[dir='ltr'] .spread.is-closed .spread__frame { transform: translateX(-25%); }
+
+.spread__frame {
+    place-self: center;
+    transition: transform 0.9s cubic-bezier(0.52, 0.05, 0.32, 1);
+    aspect-ratio: calc(var(--book-ratio, 0.75) * 2);
+    width: min(100%, calc((100dvh - 110px) * var(--book-ratio, 0.75) * 2));
+    max-height: calc(100dvh - 110px);
+}
+
+.spread__stage {
+    position: relative;
+    height: 100%;
+    perspective: 3600px;
+    perspective-origin: 50% 50%;
+    filter: drop-shadow(0 26px 50px rgb(0 0 0 / 55%));
+}
+
+/* Every leaf lives on the left half and pivots on the spine at the centre. */
+.spread__leaf {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    width: 50%;
+    transform-style: preserve-3d;
+    transform-origin: 100% 50%;
+    transition: transform 0.9s cubic-bezier(0.52, 0.05, 0.32, 1);
+}
+[dir='rtl'] .spread__leaf { inset-inline-start: auto; left: 0; transform-origin: 100% 50%; }
+.spread__leaf.is-turned { transform: rotateY(-180deg); }
+.spread.is-seeking .spread__leaf { transition: none; }
+@media (prefers-reduced-motion: reduce) { .spread__leaf { transition: none; } }
+
+.spread__face {
+    position: absolute;
+    inset: 0;
+    container-type: inline-size;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: calc(2.5cqw * var(--type-scale, 1));
+    padding: 8% 8% 12%;
+    background: var(--paper);
+    overflow: hidden;
+    backface-visibility: hidden;
+}
+.spread__face--back { transform: rotateY(180deg); }
+.spread__face--empty { background: #efece6; }
+
+/* The gutter: paper curving into the binding, on the spine side of each face. */
+.spread__face--front::after,
+.spread__face--back::after {
+    content: '';
+    position: absolute;
+    inset-block: 0;
+    width: 7%;
+    pointer-events: none;
+}
+.spread__face--front::after { right: 0; background: linear-gradient(to left, rgb(0 0 0 / 16%), transparent); }
+.spread__face--back::after { left: 0; background: linear-gradient(to right, rgb(0 0 0 / 16%), transparent); }
+
+.spread__controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+}
+.spread__controls .btn {
+    min-width: 52px;
+    color: rgb(255 255 255 / 85%);
+    border-color: rgb(255 255 255 / 30%);
+}
+.spread__controls .btn:hover:not(:disabled) { background: rgb(255 255 255 / 10%); border-color: rgb(255 255 255 / 60%); color: #fff; }
+.spread__controls .btn:disabled { opacity: 0.3; }
+.spread__counter { font-size: var(--fs-small); color: rgb(255 255 255 / 62%); min-width: 190px; text-align: center; }
+
+@media (max-width: 767px) {
+    .spread { padding: 50px 12px 18px; }
+    .spread__frame { width: min(100%, calc((100dvh - 100px) * var(--book-ratio, 0.75) * 2)); }
+    .spread__counter { min-width: 0; font-size: var(--fs-micro); }
 }

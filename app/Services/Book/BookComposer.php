@@ -21,9 +21,23 @@ class BookComposer
     /** A memory whose text is shorter than this keeps its photos on the same page. */
     private const INLINE_TEXT_RATIO = 0.38;
 
-    /** @return array<int,BookPage> */
-    public function compose(Memorial $memorial, BookContent $content, BookSize $size, array $overrides = []): array
+    /** @var array<string,int> photo keys the owner has taken out, as a lookup */
+    private array $excluded = [];
+
+    private function isExcluded(string $key): bool
     {
+        return isset($this->excluded[$key]);
+    }
+
+    /** @return array<int,BookPage> */
+    public function compose(
+        Memorial $memorial,
+        BookContent $content,
+        BookSize $size,
+        array $overrides = [],
+        array $excluded = [],
+    ): array {
+        $this->excluded = array_flip($excluded);
         $pages = [$this->cover($memorial)];
 
         foreach ($this->opening($memorial, $size) as $page) {
@@ -45,7 +59,9 @@ class BookComposer
         }
 
         if ($content->includesPhotos()) {
-            $images = $memorial->images()->get();
+            $images = $memorial->images()->get()
+                ->reject(fn ($image) => $this->isExcluded("gallery:{$image->id}"))
+                ->values();
 
             if ($images->isNotEmpty()) {
                 $pages[] = new BookPage(
@@ -59,7 +75,11 @@ class BookComposer
                     $pages[] = new BookPage(
                         type: 'photos',
                         key: "photos:gallery:{$n}",
-                        images: $chunk->map(fn ($image) => ['url' => $image->url, 'alt' => (string) $image->alt])->values()->all(),
+                        images: $chunk->map(fn ($image) => [
+                            'key' => "gallery:{$image->id}",
+                            'url' => $image->url,
+                            'alt' => (string) $image->alt,
+                        ])->values()->all(),
                         columns: $size->photoColumns(),
                     );
                 }
@@ -127,7 +147,8 @@ class BookComposer
     {
         $images = $memory->media
             ->where('type', MediaType::Image)
-            ->map(fn ($image) => ['url' => $image->url, 'alt' => ''])
+            ->reject(fn ($image) => $this->isExcluded("memory:{$image->id}"))
+            ->map(fn ($image) => ['key' => "memory:{$image->id}", 'url' => $image->url, 'alt' => ''])
             ->values()
             ->all();
 

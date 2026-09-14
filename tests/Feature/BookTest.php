@@ -273,6 +273,70 @@ class BookTest extends TestCase
         $this->assertNull(Book::first()->overrides);
     }
 
+    public function test_a_photo_can_be_taken_out_of_the_book_and_put_back(): void
+    {
+        $this->addPhotos(3);
+        $this->memorial->refresh();
+        $key = 'gallery:'.$this->memorial->images->first()->id;
+        $offered = $this->memorial->images->map(fn ($i) => "gallery:{$i->id}")->all();
+
+        $this->actingAs($this->owner)
+            ->put(route('dashboard.book.photos.update'), ['offered' => $offered, 'remove' => [$key]])
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame([$key], Book::first()->excluded());
+
+        $shown = collect(app(BookComposer::class)->compose(
+            $this->memorial, BookContent::Photos, BookSize::Portrait, [], Book::first()->excluded()
+        ))->flatMap(fn ($p) => collect($p->images)->pluck('key'))->filter()->all();
+
+        $this->assertNotContains($key, $shown);
+        $this->assertCount(2, $shown);
+
+        // Offering it without listing it for removal puts it back.
+        $this->actingAs($this->owner)
+            ->put(route('dashboard.book.photos.update'), ['offered' => $offered, 'remove' => []]);
+
+        $this->assertSame([], Book::first()->excluded());
+    }
+
+    public function test_removing_photos_on_one_page_leaves_other_pages_alone(): void
+    {
+        $this->addPhotos(12);
+        $this->memorial->refresh();
+        $all = $this->memorial->images->map(fn ($i) => "gallery:{$i->id}")->all();
+
+        $book = Book::create(['memorial_id' => $this->memorial->id, 'excluded_images' => [$all[9]]]);
+
+        // A page holding the first four photos submits only those four.
+        $book->setPhotoExclusions(array_slice($all, 0, 4), [$all[0]]);
+
+        $this->assertEqualsCanonicalizing([$all[9], $all[0]], $book->fresh()->excluded());
+    }
+
+    public function test_the_photo_endpoint_rejects_a_malformed_key(): void
+    {
+        $this->actingAs($this->owner)
+            ->from(route('dashboard.book'))
+            ->put(route('dashboard.book.photos.update'), ['offered' => ['users:1'], 'remove' => []])
+            ->assertSessionHasErrors('offered.0');
+    }
+
+    public function test_resetting_also_puts_the_photos_back(): void
+    {
+        $this->addPhotos(2);
+        $this->memorial->refresh();
+        Book::create([
+            'memorial_id' => $this->memorial->id,
+            'excluded_images' => ['gallery:'.$this->memorial->images->first()->id],
+        ]);
+
+        $this->actingAs($this->owner)->delete(route('dashboard.book.pages.reset'))->assertRedirect();
+
+        $this->assertSame([], Book::first()->excluded());
+    }
+
     public function test_the_builder_is_private(): void
     {
         $this->get(route('dashboard.book'))->assertRedirect(route('login'));

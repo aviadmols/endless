@@ -122,7 +122,21 @@
         @endif
     </div>
     <div class="card__body">
-        <p class="micro" data-editor-empty hidden>לעמוד הזה אין טקסט לעריכה.</p>
+        <p class="micro" data-editor-empty hidden>לעמוד הזה אין מה לערוך.</p>
+
+        {{-- Photo pages: take a picture out of the book, or put it back. --}}
+        <form method="POST" action="{{ route('dashboard.book.photos.update') }}" data-editor-photos hidden
+              style="margin-block-end: 24px;">
+            @csrf
+            @method('PUT')
+            <input type="hidden" name="page" value="1" data-photos-page>
+            <input type="hidden" name="content" value="{{ $content->value }}" data-mirror="content">
+            <input type="hidden" name="size" value="{{ $size->value }}" data-mirror="size">
+
+            <p class="micro" style="margin-block-end: 10px;">התמונות בעמוד הזה. הסרה מוציאה את התמונה מהספר בלבד — היא נשארת בעמוד ההנצחה.</p>
+            <div class="photo-picker" data-photos-list></div>
+            <button type="submit" class="btn btn--sm" style="margin-block-start: 16px;">עדכון התמונות</button>
+        </form>
 
         <form method="POST" action="{{ route('dashboard.book.page.update') }}" data-editor-body>
             @csrf
@@ -167,6 +181,32 @@
                 מחיקת הטקסט והחזרתו למקור מבטלת את העריכה.
             </p>
         </form>
+
+        @if ($removed)
+            <hr class="hr">
+            <h3 style="font-size: var(--fs-body); margin-block-end: 4px;">תמונות שהוסרו מהספר</h3>
+            <p class="micro" style="margin-block-end: 12px;">בטלו את הסימון של תמונה כדי להחזיר אותה לספר.</p>
+
+            <form method="POST" action="{{ route('dashboard.book.photos.update') }}">
+                @csrf
+                @method('PUT')
+                <input type="hidden" name="content" value="{{ $content->value }}">
+                <input type="hidden" name="size" value="{{ $size->value }}">
+
+                <div class="photo-picker">
+                    @foreach ($removed as $photo)
+                        <label class="photo-pick is-out">
+                            <input type="hidden" name="offered[]" value="{{ $photo['key'] }}">
+                            <input type="checkbox" name="remove[]" value="{{ $photo['key'] }}" checked>
+                            <img src="{{ $photo['url'] }}" alt="" loading="lazy">
+                            <span class="photo-pick__mark">מחוץ לספר</span>
+                        </label>
+                    @endforeach
+                </div>
+
+                <button type="submit" class="btn btn--ghost btn--sm" style="margin-block-start: 16px;">עדכון</button>
+            </form>
+        @endif
     </div>
 </div>
 

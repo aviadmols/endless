@@ -55,6 +55,12 @@
 .size-option__label { font-size: var(--fs-small); }
 .size-option__dims { font-size: var(--fs-micro); color: var(--ink-soft); }
 
+/* ------------------------------------------------------------ page editor */
+
+/* `.form-row` sets `display: flex`, which outranks the browser's own rule for
+   `[hidden]` — without this the rows for fields the page does not have stay up. */
+.form-row[hidden] { display: none; }
+
 /* ------------------------------------------------------------------ copies */
 
 .copies { display: inline-flex; align-items: center; border: 1px solid var(--rule); border-radius: var(--r-input); overflow: hidden; }
@@ -92,23 +98,57 @@
 
 .book { display: grid; gap: 14px; }
 
-/* One page at a time, stacked so the pane keeps its height while you flip. */
-.book__stage {
-    display: grid;
+/* The pages are stacked leaves. Each one turns around the spine — the inline
+   start edge, so the book opens right-to-left the way a Hebrew book does. */
+/* A turned leaf swings past the spine and would otherwise be painted over the
+   rest of the panel, so the frame clips it. The clip has to sit outside the
+   perspective: on the stage itself `overflow` would flatten the 3-D. */
+.book__frame {
     aspect-ratio: var(--book-ratio, 0.75);
-    background: var(--soft);
     border-radius: var(--r-img);
     overflow: hidden;
     box-shadow: var(--shadow-lift);
 }
 
-/* The preview is a scale model of the printed page, so its type is sized in
-   container units: the same text fills the same fraction of the page whatever
-   the pane is. That keeps the composer's per-page character budget honest. */
+.book__stage {
+    display: grid;
+    height: 100%;
+    background: var(--soft);
+    perspective: 2400px;
+    perspective-origin: 50% 50%;
+}
+
 .book__page {
     grid-area: 1 / 1;
-    container-type: inline-size;
     position: relative;
+    transform-style: preserve-3d;
+    /* RTL: the spine is on the right, so that is what the leaf pivots on. */
+    transform-origin: 100% 50%;
+    /* Weighted so the leaf spends most of the time in the half you can still
+       see — past 90° it is behind the spine and the rest is just settling. */
+    transition: transform 0.85s cubic-bezier(0.52, 0.05, 0.32, 1);
+    backface-visibility: visible;
+}
+[dir='ltr'] .book__page { transform-origin: 0 50%; }
+
+/* Turned leaves lie on the other side of the spine. */
+.book__page.is-turned { transform: rotateY(180deg); }
+[dir='ltr'] .book__page.is-turned { transform: rotateY(-180deg); }
+
+/* Jumping several pages at once should not flutter the whole book. */
+.book.is-seeking .book__page { transition: none; }
+@media (prefers-reduced-motion: reduce) { .book__page { transition: none; } }
+
+/* `overflow` and `container-type` both flatten 3-D, so they live on the face,
+   never on the leaf that rotates.
+
+   The preview is a scale model of the printed page, so its type is sized in
+   container units: the same text fills the same fraction of the page whatever
+   the pane is. That keeps the composer's per-page line budget honest. */
+.book__face {
+    position: absolute;
+    inset: 0;
+    container-type: inline-size;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
@@ -116,11 +156,27 @@
     padding: 8% 8% 12%;
     background: var(--paper);
     overflow: hidden;
-    visibility: hidden;
-    opacity: 0;
-    transition: opacity var(--t);
+    backface-visibility: hidden;
 }
-.book__page.is-current { visibility: visible; opacity: 1; }
+.book__face--back {
+    transform: rotateY(180deg);
+    background:
+        linear-gradient(to left, rgb(0 0 0 / 6%), transparent 22%),
+        var(--paper);
+}
+[dir='ltr'] .book__face--back { background: linear-gradient(to right, rgb(0 0 0 / 6%), transparent 22%), var(--paper); }
+
+/* A little shadow gathering at the spine, so a lifted page reads as paper. */
+.book__face::before {
+    content: '';
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    width: 9%;
+    background: linear-gradient(to left, rgb(0 0 0 / 9%), transparent);
+    pointer-events: none;
+}
+[dir='ltr'] .book__face::before { background: linear-gradient(to right, rgb(0 0 0 / 9%), transparent); }
 
 .book__folio {
     position: absolute;
@@ -136,9 +192,10 @@
 .book__byline { margin-block-start: auto; font-size: calc(2.2cqw * var(--type-scale, 1)); letter-spacing: calc(0.1cqw * var(--type-scale, 1)); color: var(--ink-soft); }
 
 /* cover */
-.book__page--cover { padding: 0; justify-content: flex-end; gap: 0; background: var(--ink); }
+.book__page--cover > .book__face { padding: 0; justify-content: flex-end; gap: 0; background: var(--ink); }
+.book__page--cover > .book__face::before { display: none; }
 .book__cover-media { position: absolute; inset: 0; }
-.book__cover-media img { width: 100%; height: 100%; object-fit: cover; }
+.book__cover-media img { width: 100%; height: 100%; object-fit: contain; }
 .book__cover-media::after {
     content: '';
     position: absolute;
@@ -152,7 +209,7 @@
 .book__page--cover .book__folio { display: none; }
 
 /* chapter opener */
-.book__page--divider { justify-content: center; align-items: center; text-align: center; }
+.book__page--divider > .book__face { justify-content: center; align-items: center; text-align: center; }
 .book__divider { display: grid; gap: calc(1.6cqw * var(--type-scale, 1)); }
 .book__divider h3 { font-size: calc(5.5cqw * var(--type-scale, 1)); font-weight: var(--fw-light); }
 
@@ -167,11 +224,21 @@
     min-height: 0;
     overflow: hidden;
 }
-.book__grid img { width: 100%; height: 100%; min-width: 0; min-height: 0; object-fit: cover; border-radius: 2px; }
+/* Photos are shown whole — a memorial photo is not ours to crop — so the tile
+   letterboxes onto a soft ground instead. */
+.book__grid img {
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    object-fit: contain;
+    background: var(--soft);
+    border-radius: 2px;
+}
 .book__page--memory .book__grid { flex: 0 0 40%; }
 
 /* closing */
-.book__page--closing { justify-content: center; align-items: center; text-align: center; }
+.book__page--closing > .book__face { justify-content: center; align-items: center; text-align: center; }
 .book__closing { display: grid; gap: calc(3cqw * var(--type-scale, 1)); }
 .book__closing blockquote { font-size: calc(4.2cqw * var(--type-scale, 1)); font-weight: var(--fw-extralight); line-height: 1.4; }
 .book__page--closing .book__byline { margin-block-start: 0; }

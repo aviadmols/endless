@@ -22,7 +22,7 @@ class BookComposer
     private const INLINE_TEXT_RATIO = 0.38;
 
     /** @return array<int,BookPage> */
-    public function compose(Memorial $memorial, BookContent $content, BookSize $size): array
+    public function compose(Memorial $memorial, BookContent $content, BookSize $size, array $overrides = []): array
     {
         $pages = [$this->cover($memorial)];
 
@@ -34,7 +34,7 @@ class BookComposer
             $memories = $memorial->approvedMemories()->with('media')->get()->reverse()->values();
 
             if ($memories->isNotEmpty()) {
-                $pages[] = new BookPage(type: 'divider', eyebrow: 'פרק ראשון', title: 'הזיכרונות');
+                $pages[] = new BookPage(type: 'divider', key: 'divider:memories', eyebrow: 'פרק ראשון', title: 'הזיכרונות');
 
                 foreach ($memories as $memory) {
                     foreach ($this->memoryPages($memory, $size) as $page) {
@@ -50,13 +50,15 @@ class BookComposer
             if ($images->isNotEmpty()) {
                 $pages[] = new BookPage(
                     type: 'divider',
+                    key: 'divider:photos',
                     eyebrow: $content === BookContent::Both ? 'פרק שני' : 'הגלריה',
                     title: 'תמונות',
                 );
 
-                foreach ($images->chunk($size->photosPerPage()) as $chunk) {
+                foreach ($images->chunk($size->photosPerPage()) as $n => $chunk) {
                     $pages[] = new BookPage(
                         type: 'photos',
+                        key: "photos:gallery:{$n}",
                         images: $chunk->map(fn ($image) => ['url' => $image->url, 'alt' => (string) $image->alt])->values()->all(),
                         columns: $size->photoColumns(),
                     );
@@ -72,7 +74,10 @@ class BookComposer
             $pages[] = new BookPage(type: 'blank');
         }
 
-        return $pages;
+        return array_map(
+            fn (BookPage $page) => isset($overrides[$page->key]) ? $page->withOverrides($overrides[$page->key]) : $page,
+            $pages,
+        );
     }
 
     private function cover(Memorial $memorial): BookPage
@@ -81,6 +86,7 @@ class BookComposer
 
         return new BookPage(
             type: 'cover',
+            key: 'cover',
             eyebrow: $memorial->display_subtitle,
             title: $memorial->full_name,
             caption: $memorial->dates_display,
@@ -96,6 +102,7 @@ class BookComposer
         if ($biography === '') {
             return [new BookPage(
                 type: 'opening',
+                key: 'opening:0',
                 title: $memorial->full_name,
                 caption: $memorial->dates_display,
             )];
@@ -105,6 +112,7 @@ class BookComposer
         foreach ($this->split($biography, $size, titled: true) as $i => $chunk) {
             $pages[] = new BookPage(
                 type: 'opening',
+                key: "opening:{$i}",
                 title: $i === 0 ? ($memorial->biography_title ?: $memorial->full_name) : null,
                 body: $chunk,
                 caption: $i === 0 ? $memorial->dates_display : null,
@@ -133,9 +141,10 @@ class BookComposer
         $pages = [];
 
         if ($images !== [] && ! $inline) {
-            foreach (array_chunk($images, $size->photosPerPage()) as $chunk) {
+            foreach (array_chunk($images, $size->photosPerPage()) as $n => $chunk) {
                 $pages[] = new BookPage(
                     type: 'photos',
+                    key: "photos:memory:{$memory->id}:{$n}",
                     caption: $byline,
                     images: $chunk,
                     columns: count($chunk) === 1 ? 1 : $size->photoColumns(),
@@ -151,6 +160,7 @@ class BookComposer
         foreach ($chunks as $i => $chunk) {
             $pages[] = new BookPage(
                 type: 'memory',
+                key: "memory:{$memory->id}:{$i}",
                 title: $i === 0 ? ($memory->title ?: null) : null,
                 body: $chunk,
                 caption: $i === count($chunks) - 1 ? $byline : null,
@@ -166,6 +176,7 @@ class BookComposer
     {
         return new BookPage(
             type: 'closing',
+            key: 'closing',
             title: $memorial->quote ?: null,
             caption: $memorial->quote_name ?: $memorial->founder_display,
         );

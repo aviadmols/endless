@@ -74,6 +74,8 @@ Route::middleware('auth')->prefix('dashboard')->name('dashboard.')->group(functi
     Route::get('/book', [Dashboard\BookController::class, 'index'])->name('book');
     Route::get('/book/preview', [Dashboard\BookController::class, 'preview'])->name('book.preview');
     Route::put('/book', [Dashboard\BookController::class, 'update'])->name('book.update');
+    Route::put('/book/page', [Dashboard\BookController::class, 'updatePage'])->name('book.page.update');
+    Route::delete('/book/pages', [Dashboard\BookController::class, 'resetPages'])->name('book.pages.reset');
 
     Route::get('/share', [Dashboard\ShareController::class, 'index'])->name('share');
     Route::post('/share/regenerate', [Dashboard\ShareController::class, 'regenerate'])->name('share.regenerate');

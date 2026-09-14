@@ -88,23 +88,87 @@
             </div>
         </div>
 
-        <div class="card">
-            <div class="card__head">
-                <h2>הדגמה</h2>
-                {{-- Without JavaScript the options still apply, one reload at a time. --}}
-                <noscript><button type="submit" formmethod="get" formaction="{{ route('dashboard.book') }}" class="btn btn--ghost btn--sm">עדכון ההדגמה</button></noscript>
-            </div>
-            <div class="card__body">
-                <div data-book-preview>
-                    @include('dashboard.partials._book_preview', ['pages' => $pages, 'size' => $size])
+        <div>
+            <div class="card">
+                <div class="card__head">
+                    <h2>הדגמה</h2>
+                    {{-- Without JavaScript the options still apply, one reload at a time. --}}
+                    <noscript><button type="submit" formmethod="get" formaction="{{ route('dashboard.book') }}" class="btn btn--ghost btn--sm">עדכון ההדגמה</button></noscript>
                 </div>
-                <p class="micro center" style="margin-block-start: 14px;">
-                    ההדגמה מציגה את החלוקה לעמודים לפי הגודל שנבחר. מספר העמודים הוא הערכה ויכול להשתנות מעט בהדפסה.
-                </p>
+                <div class="card__body">
+                    <div data-book-preview>
+                        @include('dashboard.partials._book_preview', ['pages' => $pages, 'size' => $size, 'openAt' => $openAt])
+                    </div>
+                    <p class="micro center" style="margin-block-start: 14px;">
+                        ההדגמה מציגה את החלוקה לעמודים לפי הגודל שנבחר. מספר העמודים הוא הערכה ויכול להשתנות מעט בהדפסה.
+                    </p>
+                </div>
             </div>
         </div>
     </div>
 </form>
+
+{{-- Editing one page is its own form: it saves against whichever page is showing. --}}
+<div class="card" data-book-editor>
+    <div class="card__head">
+        <h2>עריכת העמוד המוצג</h2>
+        @if (($book->overrides ?? []) !== [])
+            <form method="POST" action="{{ route('dashboard.book.pages.reset') }}"
+                  onsubmit="return confirm('כל העריכות יימחקו והספר יחזור לתוכן של עמוד ההנצחה. להמשיך?')">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn btn--danger btn--sm">ביטול כל העריכות</button>
+            </form>
+        @endif
+    </div>
+    <div class="card__body">
+        <p class="micro" data-editor-empty hidden>לעמוד הזה אין טקסט לעריכה.</p>
+
+        <form method="POST" action="{{ route('dashboard.book.page.update') }}" data-editor-body>
+            @csrf
+            @method('PUT')
+            <input type="hidden" name="key" value="">
+            <input type="hidden" name="page" value="1">
+            <input type="hidden" name="content" value="{{ $content->value }}" data-mirror="content">
+            <input type="hidden" name="size" value="{{ $size->value }}" data-mirror="size">
+
+            <div class="form-row" data-field-row="eyebrow">
+                <div class="field-block">
+                    <label for="page-eyebrow">כותרת עליונה</label>
+                    <input type="text" name="eyebrow" id="page-eyebrow">
+                </div>
+            </div>
+
+            <div class="form-row" data-field-row="title">
+                <div class="field-block">
+                    <label for="page-title">כותרת</label>
+                    <input type="text" name="title" id="page-title">
+                </div>
+            </div>
+
+            <div class="form-row" data-field-row="body">
+                <div class="field-block">
+                    <label for="page-body">טקסט העמוד</label>
+                    <textarea name="body" id="page-body" rows="8"></textarea>
+                    <span class="hint">שורה ריקה מפרידה בין פסקאות. טקסט ארוך מהעמוד ייחתך בהדגמה.</span>
+                </div>
+            </div>
+
+            <div class="form-row" data-field-row="caption">
+                <div class="field-block">
+                    <label for="page-caption">שורת סיום</label>
+                    <input type="text" name="caption" id="page-caption">
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn--sm">שמירת העמוד</button>
+            <p class="micro" style="margin-block-start: 12px;">
+                העריכה נשמרת לעמוד הזה בלבד ואינה משנה את עמוד ההנצחה.
+                מחיקת הטקסט והחזרתו למקור מבטלת את העריכה.
+            </p>
+        </form>
+    </div>
+</div>
 
 @endif
 @endsection

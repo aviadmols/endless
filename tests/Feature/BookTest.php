@@ -183,6 +183,96 @@ class BookTest extends TestCase
         }
     }
 
+    public function test_a_page_can_be_rewritten(): void
+    {
+        Memory::factory()->for($this->memorial)->create();
+
+        $this->actingAs($this->owner)
+            ->put(route('dashboard.book.page.update'), [
+                'key' => 'cover',
+                'title' => 'שם אחר לכריכה',
+                'size' => BookSize::Portrait->value,
+                'content' => BookContent::Both->value,
+            ])
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame(['title' => 'שם אחר לכריכה'], Book::first()->overrides['cover']);
+
+        $cover = collect(app(BookComposer::class)->compose(
+            $this->memorial->fresh(), BookContent::Both, BookSize::Portrait, Book::first()->overrides
+        ))->firstWhere('key', 'cover');
+
+        $this->assertSame('שם אחר לכריכה', $cover->title);
+    }
+
+    public function test_text_put_back_to_the_original_stops_being_an_override(): void
+    {
+        Memory::factory()->for($this->memorial)->create();
+        $payload = ['key' => 'cover', 'size' => BookSize::Portrait->value, 'content' => BookContent::Both->value];
+
+        $this->actingAs($this->owner)->put(route('dashboard.book.page.update'), [...$payload, 'title' => 'שם אחר']);
+        $this->assertArrayHasKey('cover', Book::first()->overrides);
+
+        $this->actingAs($this->owner)->put(route('dashboard.book.page.update'), [...$payload, 'title' => 'אברהם כוכב']);
+        $this->assertArrayNotHasKey('cover', Book::first()->overrides ?? []);
+    }
+
+    public function test_an_edit_survives_a_change_of_size(): void
+    {
+        Memory::factory()->for($this->memorial)->create();
+
+        $this->actingAs($this->owner)->put(route('dashboard.book.page.update'), [
+            'key' => 'cover',
+            'title' => 'שם אחר',
+            'size' => BookSize::Portrait->value,
+            'content' => BookContent::Both->value,
+        ]);
+
+        foreach (BookSize::cases() as $size) {
+            $cover = collect(app(BookComposer::class)->compose(
+                $this->memorial, BookContent::Both, $size, Book::first()->overrides
+            ))->firstWhere('key', 'cover');
+
+            $this->assertSame('שם אחר', $cover->title, "lost on {$size->value}");
+        }
+    }
+
+    public function test_editing_an_unknown_page_is_rejected(): void
+    {
+        $this->actingAs($this->owner)
+            ->put(route('dashboard.book.page.update'), ['key' => 'memory:999:0', 'title' => 'x'])
+            ->assertNotFound();
+    }
+
+    public function test_every_page_carries_a_key_except_the_blanks(): void
+    {
+        Memory::factory()->for($this->memorial)->count(3)->create();
+        $this->addPhotos(5);
+        $this->memorial->refresh();
+
+        $pages = app(BookComposer::class)->compose($this->memorial, BookContent::Both, BookSize::Portrait);
+        $keys = collect($pages)->reject(fn ($p) => $p->type === 'blank')->pluck('key');
+
+        $this->assertTrue($keys->every(fn ($k) => $k !== ''), 'a page is missing its key');
+        $this->assertSame($keys->count(), $keys->unique()->count(), 'two pages share a key');
+    }
+
+    public function test_the_owner_can_drop_every_edit(): void
+    {
+        Memory::factory()->for($this->memorial)->create();
+        $this->actingAs($this->owner)->put(route('dashboard.book.page.update'), [
+            'key' => 'cover', 'title' => 'שם אחר',
+            'size' => BookSize::Portrait->value, 'content' => BookContent::Both->value,
+        ]);
+
+        $this->actingAs($this->owner)
+            ->delete(route('dashboard.book.pages.reset'))
+            ->assertRedirect();
+
+        $this->assertNull(Book::first()->overrides);
+    }
+
     public function test_the_builder_is_private(): void
     {
         $this->get(route('dashboard.book'))->assertRedirect(route('login'));

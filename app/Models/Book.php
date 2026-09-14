@@ -18,7 +18,10 @@ class Book extends Model
 
     public const MAX_COPIES = 500;
 
-    protected $fillable = ['memorial_id', 'content', 'size', 'copies', 'page_count'];
+    /** Text fields of a page the owner may rewrite. */
+    public const EDITABLE_FIELDS = ['eyebrow', 'title', 'body', 'caption'];
+
+    protected $fillable = ['memorial_id', 'content', 'size', 'overrides', 'copies', 'page_count'];
 
     protected $attributes = [
         'content' => 'both',
@@ -32,9 +35,36 @@ class Book extends Model
         return [
             'content' => BookContent::class,
             'size' => BookSize::class,
+            'overrides' => 'array',
             'copies' => 'integer',
             'page_count' => 'integer',
         ];
+    }
+
+    /**
+     * Store one page's edits. A field set back to the composed text is dropped
+     * rather than frozen, so the page keeps following the memorial.
+     */
+    public function overridePage(string $key, array $fields, array $composed): void
+    {
+        $overrides = $this->overrides ?? [];
+        $edits = [];
+
+        foreach ($fields as $field => $value) {
+            $value = trim((string) $value);
+            if ($value !== trim((string) ($composed[$field] ?? ''))) {
+                $edits[$field] = $value;
+            }
+        }
+
+        if ($edits === []) {
+            unset($overrides[$key]);
+        } else {
+            $overrides[$key] = $edits;
+        }
+
+        $this->overrides = $overrides;
+        $this->save();
     }
 
     public function memorial(): BelongsTo

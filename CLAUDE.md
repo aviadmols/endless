@@ -5,7 +5,7 @@ Laravel 13 app for memorial pages. Hebrew/RTL throughout. See `README.md` for se
 ## Commands
 
 ```bash
-php artisan test                 # 102 tests, keep them green
+php artisan test                 # 108 tests, keep them green
 php artisan migrate:fresh --seed # rebuild the demo memorial at /m/kochav
 npm run dev                      # Vite watch
 npm run build                    # required before checking pages in a browser
@@ -50,7 +50,7 @@ its own `resources/css/home.css`, reference photography in `public/images/home/`
 
 ## The book builder
 
-`/dashboard/book` composes a memorial into printed pages (`BookComposer`). Two things keep it honest:
+`/dashboard/book` composes a memorial into printed pages (`BookComposer`). Four things to know:
 
 - **The page budget is counted in rendered lines, not characters.** The body uses `white-space: pre-line`,
   so a one-word line costs a whole line. `BookSize::linesPerPage()` / `charsPerLine()` were measured
@@ -58,6 +58,13 @@ its own `resources/css/home.css`, reference photography in `public/images/home/`
 - **The preview is a scale model.** Type is sized in `cqw` off `--type-scale` (`21 / widthCm`), so a
   landscape page draws smaller type at the same pane width, exactly as it would on paper. Size it in
   px and the budget stops matching what the page shows.
+- **The preview is a stack of leaves, not a slideshow.** Every page before the current one carries
+  `.is-turned`, so forward and back are the same operation and CSS animates it. `overflow` and
+  `container-type` flatten 3-D, so they live on `.book__face`, never on the leaf that rotates, and
+  the clip sits on `.book__frame` outside the perspective.
+- **Per-page edits are keyed overrides** (`books.overrides`, keyed by the page key). A field
+  edited back to the composed text is dropped rather than frozen, so the page keeps following the
+  memorial. Keys that no longer exist after a resize are ignored.
 
 Ordering is deliberately closed — `Book` stores the draft so it can become an order when payments land.
 

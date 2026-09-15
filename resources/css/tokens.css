@@ -1,11 +1,29 @@
 /* ==========================================================================
    Endless — design tokens
-   Measured from the reference pages (endless.day) and re-typed in Heebo.
+   Measured from the reference pages (endless.day) and re-typed in TheBasics.
    ========================================================================== */
+
+/* TheBasics ships two cuts. Each face claims a weight range, so the lighter
+   weights the design asks for resolve to Regular and 800+ to Black, instead of
+   the browser inventing a faux bold. */
+@font-face {
+    font-family: 'TheBasics';
+    src: url('../fonts/TheBasics-Regular.woff2') format('woff2');
+    font-weight: 100 700;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'TheBasics';
+    src: url('../fonts/TheBasics-Black.woff2') format('woff2');
+    font-weight: 800 900;
+    font-style: normal;
+    font-display: swap;
+}
 
 :root {
     /* ---------------------------------------------------------- typography */
-    --font: 'Heebo', system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
+    --font: 'TheBasics', system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
 
     --fw-thin: 100;
     --fw-extralight: 200;

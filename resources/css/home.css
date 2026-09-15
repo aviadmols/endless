@@ -1,10 +1,10 @@
 /* ==========================================================================
    Home page — the endless.day front page, measurement-for-measurement,
-   mirrored to RTL and re-typed in Heebo.
+   mirrored to RTL and re-typed in TheBasics.
    ========================================================================== */
 
 .home {
-    /* Circular Std on the reference; Heebo sits one step lighter at the same size. */
+    /* Circular Std on the reference, re-typed in TheBasics at the same size. */
     --home-display: 55px;
     --home-display-sm: 33px;
     --home-body: 19px;

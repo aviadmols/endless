@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $title ?? setting('general.site_name', 'Endless') }}</title>
 </head>
-<body style="margin:0; padding:0; background:#F9F8F5; font-family: 'Heebo', Arial, sans-serif; color:#1D1D20;">
+<body style="margin:0; padding:0; background:#F9F8F5; font-family: 'TheBasics', Arial, sans-serif; color:#1D1D20;">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F9F8F5; padding:32px 16px;">
         <tr>
             <td align="center">

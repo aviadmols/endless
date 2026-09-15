@@ -8,7 +8,7 @@
 
 | חלק | כתובת | תיאור |
 |---|---|---|
-| עמוד הבית | `/` | שכפול 1:1 של דף הבית ב-endless.day, בעברית ובפונט Heebo: Hero במסך מלא, שלוש הבטחות, "איך זה עובד" עם כרטיסים נערמים, "למה Endless", המלצות ו-CTA |
+| עמוד הבית | `/` | שכפול 1:1 של דף הבית ב-endless.day, בעברית ובפונט TheBasics: Hero במסך מלא, שלוש הבטחות, "איך זה עובד" עם כרטיסים נערמים, "למה Endless", המלצות ו-CTA |
 | חייל השריון | `/shiryon` | עמוד נחיתה בסגנון "יד לשריון": כרטיס לבן, ארבע תכונות, "איך זה עובד", טופס לידים |
 | יצירת עמוד | `/register` | טופס הרשמה מלא (פרטי הנפטר + פרטי היוצר), תמונות, ואימות בקוד חד־פעמי |
 | כניסה | `/login` | קוד חד־פעמי ב‑SMS או במייל, ללא סיסמה |
@@ -88,7 +88,7 @@ FILESYSTEM_PUBLIC_URL=/storage       # כתובת יחסית לקבצים
 ## החלטות ארכיטקטורה
 
 - **Laravel 13 + Blade + Alpine.js.** ללא SPA — מהיר, נגיש, ו‑RTL פשוט.
-- **CSS מודולרי** (`resources/css/tokens.css` · `base.css` · `components.css`) עם Custom Properties. הטוקנים נמדדו מעמודי הרפרנס ב‑`endless.day`; הפונט היחיד הוא **Heebo**.
+- **CSS מודולרי** (`resources/css/tokens.css` · `base.css` · `components.css`) עם Custom Properties. הטוקנים נמדדו מעמודי הרפרנס ב‑`endless.day`; הפונט היחיד הוא **TheBasics** (Regular + Black), מתארח מקומית ב‑`resources/fonts/`.
 - **Masonry ב‑JS** (`resources/js/components/masonry.js`) ולא `columns` של CSS, כדי שהכרטיסים ימולאו שורה‑שורה בדיוק כמו ברפרנס.
 - **OTP במקום סיסמאות.** הקודים נשמרים כ‑hash, תוקף 10 דקות, 5 ניסיונות, הגבלת קצב לפי מזהה ולפי IP.
 - **סניטציה של HTML** ברשימת היתר (`app/Services/Html/HtmlSanitizer.php`) על כל תוכן מהמשתמשים.

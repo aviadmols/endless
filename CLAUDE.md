@@ -17,9 +17,13 @@ PHP lives at `C:\Users\user\.config\herd\bin\php84\php.exe` (Herd); `php` and `c
 
 The visual language is copied measurement-by-measurement from the reference pages on `endless.day`
 (the front page, the "yad-lashiryon" landing page, the `person/kochav` memorial page, the `/ko/` feed
-and the `/join/` form), re-typed in **Heebo** — the reference's three fonts are deliberately not used.
-Circular Std maps one weight lighter in Heebo (Cir 400 → Heebo 300, Cir 600 → Heebo 500); the
-reference's `word-spacing: -13px` compensates for its display font's wide spaces and is not carried over.
+and the `/join/` form), re-typed in **TheBasics** — the reference's three fonts are deliberately not used.
+The reference's `word-spacing: -13px` compensates for its display font's wide spaces and is not carried over.
+
+TheBasics is self-hosted from `resources/fonts/` (WOFF2) and has only two cuts, Regular and Black. The
+`@font-face` rules in `tokens.css` give Regular the range 100–700 and Black 800–900, so the `--fw-light` /
+`--fw-medium` tokens the CSS still uses all draw Regular. The tokens were kept as they were so a font with
+more weights can drop back in. There is no Google Fonts link any more.
 
 Tokens live in `resources/css/tokens.css`. The values that matter and should not drift:
 
